@@ -40,6 +40,8 @@ export const config = {
     '/login', // 로그인
     '/register', // 회원가입
     '/profile', // 프로필
+    '/add', // 맛집 추가
+    
     // '/dashboard', // 대시보드
     // '/statistics',  // 통계
     // '/transactions',  // 거래내역
