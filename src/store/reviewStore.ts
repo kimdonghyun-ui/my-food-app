@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { toast } from "react-hot-toast";
 import { fetchApi } from "@/lib/fetchApi";
+import { Place } from "./placeStore";
 
 export interface Review {
   id: number;
@@ -9,6 +10,9 @@ export interface Review {
     rating: number;
     createdAt: string;
     users_permissions_user:Users_permissions_user;
+    place: {
+      data: Place;
+    };
   };
 }
 
@@ -27,6 +31,7 @@ interface ReviewState {
   total: number;
   isLoading: boolean;
   error: string | null;
+  getReviews: (userId: string, page: number, pageSize: number) => Promise<void>;
   fetchReviews: (placeId: string, page: number, pageSize: number) => Promise<void>;
   createReviews: (placeId: string, content: string, rating: number, userId: number, pageSize: number) => Promise<void>;
   deleteReview: (id: number) => Promise<void>;
@@ -39,12 +44,35 @@ export const useReviewStore = create<ReviewState>((set, get) => ({
   isLoading: false,
   error: null,
 
+  // 리뷰 목록 조회(프로필 페이지용)
+  getReviews: async (userId, page, pageSize) => {
+    set({ isLoading: true, error: null });
+    try {
+      const res = await fetchApi<{ data: Review[]; meta: { pagination: { total: number } } }>(
+        `/food-reviews?filters[users_permissions_user][id]=${userId}&populate=*&sort=createdAt:desc&pagination[page]=${page}&pagination[pageSize]=${pageSize}`,
+        {
+            method: 'GET',
+        }
+      );
+      set({ reviews: res.data, total: res.meta.pagination.total });
+    } catch (err) {
+      toast.error("리뷰를 불러오는 데 실패했어요.");
+      set({ error: "리뷰 로드 실패" });
+    } finally {
+      set({ isLoading: false });
+    }
+  },
+
+
+
+
+
   // 리뷰 목록 조회
   fetchReviews: async (placeId, page, pageSize) => {
     set({ isLoading: true, error: null });
     try {
       const res = await fetchApi<{ data: Review[]; meta: { pagination: { total: number } } }>(
-        `/food-reviews?filters[place][id]=${placeId}&populate=users_permissions_user&sort=createdAt:desc&pagination[page]=${page}&pagination[pageSize]=${pageSize}`,
+        `/food-reviews?filters[place][id]=${placeId}&populate=*&sort=createdAt:desc&pagination[page]=${page}&pagination[pageSize]=${pageSize}`,
         {
             method: 'GET',
         }
@@ -109,7 +137,7 @@ export const useReviewStore = create<ReviewState>((set, get) => ({
   updateReview: async (id: number, content: string, rating: number) => {
     set({ isLoading: true, error: null });
     try {
-      const res = await fetchApi<{ data: Review }>(`/food-reviews/${id}?populate=users_permissions_user`, {
+      const res = await fetchApi<{ data: Review }>(`/food-reviews/${id}?populate=*`, {
         method: 'PUT',
         body: JSON.stringify({
           data: {

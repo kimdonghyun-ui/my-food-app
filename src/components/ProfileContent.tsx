@@ -1,13 +1,15 @@
-'use client';
+"use client";
 
 import { useState, useEffect } from 'react';
 import { useAuthStore } from '@/store/authStore';
 import { handleFileUpload } from "@/utils/fileUpload";
 import ProfileImage from "@/components/ProfileImage";
-
+import { useReviewStore } from '@/store/reviewStore';
+import { ChevronsLeft, ChevronLeft, ChevronRight, ChevronsRight } from "lucide-react";
 
 export default function ProfileContent() {
   const { user, handleProfileUpdate } = useAuthStore();
+  const { getReviews, total, reviews, updateReview, deleteReview } = useReviewStore();
   const [isEditing, setIsEditing] = useState(false);
   const [editedUser, setEditedUser] = useState({
     username: user?.username || '',
@@ -17,6 +19,13 @@ export default function ProfileContent() {
   });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [myPlaces, setMyPlaces] = useState<any[]>([]);
+  const [page, setPage] = useState(1);
+  const [editId, setEditId] = useState<number | null>(null);
+  const [editContent, setEditContent] = useState("");
+  const [editRating, setEditRating] = useState(5);
+
+  const PAGE_SIZE = 2;
 
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files.length > 0) {
@@ -45,7 +54,6 @@ export default function ProfileContent() {
   };
 
   useEffect(() => {
-    //수정모드 진입해서 값을 수정하고나서 저장 안누르고 취소한경우 초기화
     setEditedUser({
       username: user?.username || '',
       email: user?.email || '',
@@ -54,148 +62,210 @@ export default function ProfileContent() {
     });
   }, [isEditing, user]);
 
+  useEffect(() => {
+    if (user?.id) {
+      getReviews(`${user.id}`, page, PAGE_SIZE);
+      fetch(`${process.env.NEXT_PUBLIC_API_URL}/places?filters[users_permissions_user][id]=${user.id}&populate=*`)
+        .then(res => res.json())
+        .then(data => setMyPlaces(data.data || []));
+    }
+  }, [user, page]);
+
+  const totalPages = Math.ceil(total / PAGE_SIZE);
+
   return (
+    <div className="w-full min-h-screen bg-gradient-to-br from-purple-50 to-pink-50 dark:from-gray-900 dark:to-gray-800">
+      <main className="container mx-auto px-4 py-8 max-w-md space-y-6">
+        <h1 className="text-2xl font-bold text-center text-gray-800 dark:text-white">마이페이지</h1>
 
-    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-purple-50 to-pink-50 dark:from-gray-900 dark:to-gray-800 transition-colors duration-200">
-      <main className="container mx-auto px-4 py-8 max-w-2xl">
-        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6">
-          <div className="flex flex-col items-center space-y-6">
-            {/* 프로필 이미지 */}
-            <div className="relative">
-              <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-blue-500">
-                {editedUser.profileImage ? (
-                  <ProfileImage
-                    svgString={editedUser.profileImage || ""}
-                    alt={editedUser.username}
-                    width={128}
-                    height={128}
-                    className="object-cover"
-                  />
-                ) : (
-                  <div className="w-full h-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
-                    <span className="text-4xl text-gray-400">👤</span>
-                  </div>
-                )}
-              </div>
-              {isEditing && (
-                <label
-                  htmlFor="profileImage"
-                  className="absolute bottom-0 right-0 bg-white dark:bg-gray-800 rounded-full p-2 shadow-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow p-4 flex items-center gap-4">
+          <div className="w-14 h-14 rounded-full overflow-hidden bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
+            {editedUser.profileImage ? (
+              <ProfileImage svgString={editedUser.profileImage} alt={editedUser.username} width={56} height={56} />
+            ) : (
+              <span className="text-2xl">👤</span>
+            )}
+          </div>
+          {isEditing ? (
+            <form onSubmit={handleSubmit} className="flex-1 space-y-1">
+              <input
+                type="text"
+                value={editedUser.username}
+                onChange={(e) => setEditedUser(prev => ({ ...prev, username: e.target.value }))}
+                className="w-full px-3 py-1 text-sm font-medium border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                required
+              />
+              <input
+                type="email"
+                value={editedUser.email}
+                onChange={(e) => setEditedUser(prev => ({ ...prev, email: e.target.value }))}
+                className="w-full px-3 py-1 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                required
+              />
+              <input
+                type="password"
+                value={editedUser.password}
+                onChange={(e) => setEditedUser(prev => ({ ...prev, password: e.target.value }))}
+                placeholder="변경할 비밀번호 입력(변경하지 않으면 기존비번입력)"
+                className="w-full px-3 py-1 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                required
+              />
+
+              <div className="flex justify-end pt-2 gap-2">
+                <button
+                  type="submit"
+                  disabled={isLoading}
+                  className="text-sm px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700"
                 >
-                  <svg className="w-6 h-6 text-gray-600 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
-                  </svg>
-                  <input
-                    type="file"
-                    id="profileImage"
-                    className="hidden"
-                    accept="image/*"
-                    onChange={handleFileChange}
-                  />
+                  {isLoading ? '저장 중...' : '수정'}</button>
+                <button
+                  type="button"
+                  onClick={() => setIsEditing(false)}
+                  className="text-sm px-3 py-1 bg-gray-400 text-white rounded hover:bg-gray-500"
+                >취소</button>
+                <label className="cursor-pointer">
+                  <span className="text-sm px-3 py-1 bg-gray-300 dark:bg-gray-600 text-gray-800 dark:text-white rounded">사진</span>
+                  <input type="file" className="hidden" accept="image/*" onChange={handleFileChange} />
                 </label>
-              )}
+              </div>
+            </form>
+          ) : (
+            <div className="flex-1">
+              <p className="font-semibold text-sm text-gray-800 dark:text-white">{user?.username}</p>
+              <p className="text-xs text-gray-500 dark:text-gray-300">{user?.email}</p>
+              <button
+                onClick={() => setIsEditing(true)}
+                className="mt-1 text-xs text-blue-600 hover:underline"
+              >프로필 수정</button>
             </div>
+          )}
+        </div>
 
-            {/* 프로필 정보 */}
-            <div className="w-full max-w-2xl">
-              {isEditing ? (
-                <form onSubmit={handleSubmit} className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      사용자명
-                    </label>
-                    <input
-                      type="text"
-                      value={editedUser.username}
-                      onChange={(e) => setEditedUser(prev => ({ ...prev, username: e.target.value }))}
-                      className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 
-                               focus:ring-2 focus:ring-blue-500 focus:border-transparent
-                               dark:bg-gray-700 dark:text-white"
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      이메일
-                    </label>
-                    <input
-                      type="email"
-                      value={editedUser.email}
-                      onChange={(e) => setEditedUser(prev => ({ ...prev, email: e.target.value }))}
-                      className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 
-                               focus:ring-2 focus:ring-blue-500 focus:border-transparent
-                               dark:bg-gray-700 dark:text-white"
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      새 비밀번호
-                    </label>
-                    <input
-                      type="password"
-                      value={editedUser.password}
-                      onChange={(e) => setEditedUser(prev => ({ ...prev, password: e.target.value }))}
-                      placeholder="변경하려면 입력하세요"
-                      className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 
-                               focus:ring-2 focus:ring-blue-500 focus:border-transparent
-                               dark:bg-gray-700 dark:text-white"
-                      required
-                    />
-                  </div>
 
-                  {error && (
-                    <div className="text-red-500 text-sm text-center bg-red-50 dark:bg-red-900/20 p-3 rounded-lg">
-                      {error}
+        {/* 내가 등록한 맛집 */}
+        <section className="bg-white dark:bg-gray-800 rounded-xl shadow p-4">
+          <h2 className="font-semibold text-base mb-2">🍽 내가 등록한 맛집</h2>
+            {myPlaces.length > 0 ? (
+              <ul className="space-y-3">
+                {myPlaces.map((place) => (
+                  <li key={place.id} className="flex items-center justify-between border rounded-lg p-3">
+                    <div>
+                      <p className="font-semibold text-sm">{place.attributes.name}</p>
+                      <p className="text-xs text-gray-500">{place.attributes.category} · {place.attributes.address}</p>
+                    </div>
+                    <div className="flex gap-1">
+                      <button className="text-xs px-2 py-1 bg-gray-200 dark:bg-gray-600 rounded">수정</button>
+                      <button className="text-xs px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded">삭제</button>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+          ) : (
+            <p className="text-sm text-gray-500">등록한 맛집이 없습니다.</p>
+          )}
+        </section>
+
+
+
+
+
+        {/* 내가 작성한 리뷰 */}
+        <section className="bg-white dark:bg-gray-800 rounded-xl shadow p-4">
+          <h2 className="font-semibold text-base mb-2">📝 내가 작성한 리뷰</h2>
+          {reviews.length > 0 ? (
+            <ul className="space-y-3">
+              {reviews.map((review) => (
+                <li key={review.id} className="border rounded-lg p-3">
+                  {editId === review.id ? (
+                    <div className="space-y-2">
+                      <input
+                        className="w-full px-2 py-1 text-sm rounded border dark:bg-gray-700 dark:text-white"
+                        value={editContent}
+                        onChange={(e) => setEditContent(e.target.value)}
+                      />
+                      <div className="flex gap-1">
+                        {[1, 2, 3, 4, 5].map((i) => (
+                          <button
+                            key={i}
+                            onClick={() => setEditRating(i)}
+                            className={`text-lg ${i <= editRating ? "text-yellow-400" : "text-gray-300"}`}
+                          >★</button>
+                        ))}
+                      </div>
+                      <div className="flex gap-2 text-xs">
+                        <button
+                          className="text-green-600 hover:underline"
+                          onClick={() => {
+                            updateReview(review.id, editContent, editRating);
+                            setEditId(null);
+                          }}
+                        >저장</button>
+                        <button className="text-gray-400 hover:underline" onClick={() => setEditId(null)}>취소</button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex justify-between">
+                      <div>
+                        <p className="font-semibold text-sm">{review.attributes.place?.data?.attributes?.name || '알 수 없음'}</p>
+                        <p className="text-yellow-400 text-sm">{'★'.repeat(review.attributes.rating)}</p>
+                        <p className="text-sm text-gray-700 dark:text-gray-200">{review.attributes.content}</p>
+                      </div>
+                      <div className="flex flex-col justify-between items-end gap-1">
+                        <button
+                          className="text-xs px-2 py-1 bg-gray-200 dark:bg-gray-600 rounded"
+                          onClick={() => {
+                            setEditId(review.id);
+                            setEditContent(review.attributes.content);
+                            setEditRating(review.attributes.rating);
+                          }}
+                        >수정</button>
+                        <button
+                          className="text-xs px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded"
+                          onClick={() => deleteReview(review.id)}
+                        >삭제</button>
+                      </div>
                     </div>
                   )}
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-sm text-gray-500">작성한 리뷰가 없습니다.</p>
+          )}
 
-                  <div className="flex gap-4">
-                    <button
-                      type="submit"
-                      disabled={isLoading}
-                      className="flex-1 py-2 px-4 bg-blue-600 text-white font-medium rounded-lg 
-                               hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 
-                               focus:ring-blue-500 disabled:opacity-50 transition-colors duration-200"
-                    >
-                      {isLoading ? '저장 중...' : '저장'}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setIsEditing(false)}
-                      className="flex-1 py-2 px-4 bg-gray-200 text-gray-700 font-medium rounded-lg 
-                               hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 
-                               focus:ring-gray-500 transition-colors duration-200"
-                    >
-                      취소
-                    </button>
-                  </div>
-                </form>
-              ) : (
-                <div className="space-y-4">
-                  <div className="border-b border-gray-200 dark:border-gray-700 pb-4">
-                    <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">사용자명</h3>
-                    <p className="mt-1 text-lg text-gray-900 dark:text-white">{user?.username}</p>
-                  </div>
-                  <div className="border-b border-gray-200 dark:border-gray-700 pb-4">
-                    <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">이메일</h3>
-                    <p className="mt-1 text-lg text-gray-900 dark:text-white">{user?.email}</p>
-                  </div>
-                  <button
-                    onClick={() => setIsEditing(true)}
-                    className="w-full py-2 px-4 bg-blue-600 text-white font-medium rounded-lg 
-                             hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 
-                             focus:ring-blue-500 transition-colors duration-200"
-                  >
-                    프로필 수정
-                  </button>
-                </div>
-              )}
+          {totalPages > 1 && (
+            <div className="flex justify-center items-center gap-1 pt-4">
+              <button
+                disabled={page === 1}
+                onClick={() => setPage(1)}
+                className={`px-2 py-1 text-sm rounded disabled:cursor-not-allowed transition ${page === 1 ? "text-gray-300" : "text-gray-500 hover:text-purple-600"}`}
+              ><ChevronsLeft className="w-4 h-4" /></button>
+              <button
+                disabled={page === 1}
+                onClick={() => setPage(page - 1)}
+                className={`px-2 py-1 text-sm rounded disabled:cursor-not-allowed transition ${page === 1 ? "text-gray-300" : "text-gray-500 hover:text-purple-600"}`}
+              ><ChevronLeft className="w-4 h-4" /></button>
+              {[...Array(totalPages)].map((_, i) => (
+                <button
+                  key={i}
+                  onClick={() => setPage(i + 1)}
+                  className={`px-3 py-1 rounded-md text-sm font-medium transition ${i + 1 === page ? "bg-purple-600 text-white" : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200"}`}
+                >{i + 1}</button>
+              ))}
+              <button
+                disabled={page === totalPages}
+                onClick={() => setPage(page + 1)}
+                className={`px-2 py-1 text-sm rounded disabled:cursor-not-allowed transition ${page === totalPages ? "text-gray-300" : "text-gray-500 hover:text-purple-600"}`}
+              ><ChevronRight className="w-4 h-4" /></button>
+              <button
+                disabled={page === totalPages}
+                onClick={() => setPage(totalPages)}
+                className={`px-2 py-1 text-sm rounded disabled:cursor-not-allowed transition ${page === totalPages ? "text-gray-300" : "text-gray-500 hover:text-purple-600"}`}
+              ><ChevronsRight className="w-4 h-4" /></button>
             </div>
-          </div>
-        </div>
+          )}
+        </section>
       </main>
     </div>
   );
-} 
+}
