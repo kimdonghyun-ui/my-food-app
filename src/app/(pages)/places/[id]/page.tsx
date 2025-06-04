@@ -5,90 +5,44 @@ import { useParams } from "next/navigation";
 import { usePlaceStore } from "@/store/placeStore";
 import { loadKakaoMap } from "@/utils/utils";
 import Review from "@/components/ui/review";
+import MapComponent from "@/components/ui/mapComponent";
 
 export default function PlaceDetailPage() {
-    const { id } = useParams<{ id: string }>();
-//   const [place, setPlace] = useState<any>(null);
-  const mapRef = useRef<HTMLDivElement | null>(null);
-  const mapInstance = useRef<kakao.maps.Map | null>(null);
-  const { fetchPlace, place } = usePlaceStore();
-
+    const { id } = useParams<{ id: string }>(); // 파라미터 가져오기 [예시] = http://localhost:3000/places/9 = id에 9가 들어감
+    const { fetchPlace, place } = usePlaceStore(); // store 에서 가져오기
+    const [mapLoaded, setMapLoaded] = useState(false); // 지도 로드 상태 관리(처음은 false이다가 loadKakaoMap 실행 완료후 true로 변경됨)
 
   useEffect(() => {
-    //useEffect 룰 활용해서 최초에만 실행되게 함
-    //loadKakaoMap = 카카오 맵 스크립트 head에 삽입 후 콜백 실행(loadMap)
+    //loadKakaoMap = 카카오 맵 스크립트 head에 삽입 후 콜백 실행(setMapLoaded, fetchPlace)
     if (!id) return;
-    loadKakaoMap(() => fetchPlace(id));
+    loadKakaoMap(() => { // 카카오 스크립트 삽입 및 로드 완료
+      setMapLoaded(true); // 지도 로드 상태를 true로 변경
+      fetchPlace(id); // 해당 id의 맛집의 상세 데이터 가져오기
+    });
   }, [id]);
 
-
-
-  const loadMap = async () => {
-    // 아직 스크립트 로드 중이거나 map DOM이 준비 안 됐으면 중단
-    if (!place || !window.kakao || !mapRef.current) return;
-
-
-    const { latitude, longitude } = place.attributes;
-    const position = new window.kakao.maps.LatLng(latitude, longitude);
-
-    const map = new window.kakao.maps.Map(mapRef.current, {
-      center: position,
-      level: 3,
-    });
-    mapInstance.current = map;
-
-    const marker = new window.kakao.maps.Marker({
-      position,
-      map,
-    });
-
-    // 중심에 강조 마커 하나
-    marker.setMap(map);
-
-  };
-
-
-
-
-  useEffect(() => {
-    loadMap();
-  }, [place]);
-
-
-
   if (!place) return <div className="p-4">로딩 중...</div>;
-
-
 
   return (
     <main className="max-w-md mx-auto p-4 space-y-4">
       <h1 className="text-2xl font-bold text-purple-700">{place.attributes.name}</h1>
       <p className="text-gray-500 text-sm">종류 : {place.attributes.category}</p>
 
-      {/* 사진 슬라이더 */}
-      {/* <div className="overflow-x-auto whitespace-nowrap space-x-2 flex">
-        {photos?.data?.map((img: any) => (
-          <img
-            key={img.id}
-            src={`${process.env.NEXT_PUBLIC_API_URL}${img.attributes.url}`}
-            alt={name}
-            className="w-48 h-32 object-cover rounded-lg shadow-md"
-          />
-        ))}
-      </div> */}
-
       {/* 설명 */}
       <p className="text-gray-700">소개 : {place.attributes.description || "소개글이 없습니다."}</p>
 
-      {/* 지도 */}
-      <div ref={mapRef} className="w-full h-64 rounded-xl shadow-md border" />
+        {/* 지도 */}
+        <MapComponent
+            mapLoaded={mapLoaded}
+            markers={[{ lat: place.attributes.latitude, lng: place.attributes.longitude }]}
+            center={{ lat: place.attributes.latitude, lng: place.attributes.longitude }}
+            zoom={4}
+            height="250px"
+        />
 
-      {/* 리뷰 영역 (예시용) */}
-      {/* <section className="pt-4">
-        <h2 className="text-lg font-semibold mb-2">리뷰</h2>
-        <p className="text-sm text-gray-500">아직 등록된 리뷰가 없습니다.</p>
-      </section> */}
-      <Review placeId={id} />
+        {/* 리뷰 댓글(해당 맛집에 대한 리뷰) */}
+        <Review placeId={id} title="리뷰" />
+
     </main>
   );
 }

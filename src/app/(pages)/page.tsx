@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation";
 import { usePlaceStore } from "@/store/placeStore";
 import { loadKakaoMap } from "@/utils/utils";
 import { toast } from "react-hot-toast";
+import MapComponent from "@/components/ui/mapComponent";
 
 // 타입 먼저 선언
 type MarkerWithOverlay = {
@@ -278,6 +279,20 @@ export default function HomePage() {
           <PlusIcon className="w-6 h-6" />
         </Button>
         {/* 맛집 추가 버튼 */}
+
+
+
+
+        <MapComponent
+  markers={places.map(p => ({
+    lat: p.attributes.latitude,
+    lng: p.attributes.longitude,
+    label: p.attributes.name
+  }))}
+  center={{ lat: 37.5665, lng: 126.9780 }}
+  zoom={5}
+/>
+
 
       </section>
     </main>

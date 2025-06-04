@@ -30,6 +30,7 @@ export interface PlacePostPayload {
     isLoading: boolean;
     error: string | null;
     places: Place[];
+    placesTotal: number;
     place: Place | null;
     createPlace: (data: PlacePostPayload) => Promise<void>;
     fetchPlaces: (query?: string) => Promise<void>;
@@ -41,6 +42,7 @@ export const usePlaceStore = create<PlaceState>((set) => ({
   isLoading: false,
   error: null,
   places: [],
+  placesTotal: 0,
   place: null,
 
     // 맛집 등록
@@ -66,8 +68,8 @@ export const usePlaceStore = create<PlaceState>((set) => ({
     fetchPlaces: async (query = '/places') => {
         set({ isLoading: true, error: null });
         try {
-            const res = await fetchApi<{ data: Place[] }>(query);
-            set({ places: res.data });
+            const res = await fetchApi<{ data: Place[]; meta: { pagination: { total: number } } }>(query);
+            set({ places: res.data, placesTotal: res.meta.pagination.total });
         } catch (error) {
             set({ error: '맛집 목록 불러오기 실패' });
             toast.error('맛집 목록 불러오기 실패!');

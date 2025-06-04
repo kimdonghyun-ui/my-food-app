@@ -9,7 +9,7 @@ import { usePlaceStore } from '@/store/placeStore';
 import { toast } from "react-hot-toast";
 import { useAuthStore } from "@/store/authStore";
 import { loadKakaoMap } from "@/utils/utils";
-
+import MapComponent from "@/components/ui/mapComponent";
 
 
 declare global {
@@ -19,13 +19,14 @@ declare global {
 }
 
 export default function AddPlacePage() {
-  const mapRef = useRef<HTMLDivElement | null>(null);
-  const markerRef = useRef<any>(null);
+  // const mapRef = useRef<HTMLDivElement | null>(null);
+  // const markerRef = useRef<any>(null);
 
 
   const [name, setName] = useState(""); // 맛집 이름
   const [category, setCategory] = useState(""); // 카테고리
   const [description, setDescription] = useState(""); // 설명
+  const [mapLoaded, setMapLoaded] = useState(false);
 
   // 위치 좌표
   const [lat, setLat] = useState<number | null>(null);
@@ -36,38 +37,41 @@ export default function AddPlacePage() {
   const { createPlace, isLoading } = usePlaceStore();
 
   useEffect(() => {
-    loadKakaoMap(loadMap);
+    loadKakaoMap(() => {
+      setMapLoaded(true);
+      console.log("kakao map loaded");
+    });
   }, []);
 
-  const loadMap = () => {
-    if (!window.kakao || !mapRef.current) return;
+  // const loadMap = () => {
+  //   if (!window.kakao || !mapRef.current) return;
 
-    const map = new window.kakao.maps.Map(mapRef.current, {
-      center: new window.kakao.maps.LatLng(37.5665, 126.978),
-      level: 3,
-    });
+  //   const map = new window.kakao.maps.Map(mapRef.current, {
+  //     center: new window.kakao.maps.LatLng(37.5665, 126.978),
+  //     level: 3,
+  //   });
 
-    // 클릭 시 마커 및 좌표 표시
-    window.kakao.maps.event.addListener(map, "click", function (mouseEvent: any) {
-        const latlng = mouseEvent.latLng;
+  //   // 클릭 시 마커 및 좌표 표시
+  //   window.kakao.maps.event.addListener(map, "click", function (mouseEvent: any) {
+  //       const latlng = mouseEvent.latLng;
 
-        // 이전 마커 제거
-        if (markerRef.current) {
-            markerRef.current.setMap(null);
-        }
+  //       // 이전 마커 제거
+  //       if (markerRef.current) {
+  //           markerRef.current.setMap(null);
+  //       }
 
-        // 새 마커 생성
-        const marker = new window.kakao.maps.Marker({
-            map: map,
-            position: latlng,
-        });
+  //       // 새 마커 생성
+  //       const marker = new window.kakao.maps.Marker({
+  //           map: map,
+  //           position: latlng,
+  //       });
 
-        markerRef.current = marker;
-        setLat(latlng.getLat());
-        setLng(latlng.getLng());
+  //       markerRef.current = marker;
+  //       setLat(latlng.getLat());
+  //       setLng(latlng.getLng());
 
-    });
-  };
+  //   });
+  // };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -106,7 +110,18 @@ export default function AddPlacePage() {
             <Textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="설명" />
 
             {/* 지도 */}
-            <div ref={mapRef} className="w-full h-[50vh] rounded-xl shadow border border-purple-200 dark:border-gray-700" />
+            {/* <div ref={mapRef} className="w-full h-[50vh] rounded-xl shadow border border-purple-200 dark:border-gray-700" /> */}
+            <MapComponent
+              mapLoaded={mapLoaded} 
+              selectable
+              onSelectLocation={(lat, lng) => {
+                setLat(lat);
+                setLng(lng);
+              }}
+              center={{ lat: 37.5665, lng: 126.9780 }}
+            />
+
+
 
             {/* 위치 */}
             <div className="text-sm text-gray-600 dark:text-gray-400">
@@ -123,6 +138,11 @@ export default function AddPlacePage() {
             </Button>
             
         </form>
+
+
+
+
+
     </main>
   );
 }

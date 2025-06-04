@@ -28,11 +28,10 @@ interface Users_permissions_user {
 
 interface ReviewState {
   reviews: Review[];
-  total: number;
+  reviewsTotal: number;
   isLoading: boolean;
   error: string | null;
-  getReviews: (userId: string, page: number, pageSize: number) => Promise<void>;
-  fetchReviews: (placeId: string, page: number, pageSize: number) => Promise<void>;
+  fetchReviews: (query: string) => Promise<void>;
   createReviews: (placeId: string, content: string, rating: number, userId: number, pageSize: number) => Promise<void>;
   deleteReview: (id: number) => Promise<void>;
   updateReview: (id: number, content: string, rating: number) => Promise<void>;
@@ -40,44 +39,21 @@ interface ReviewState {
 
 export const useReviewStore = create<ReviewState>((set, get) => ({
   reviews: [],
-  total: 0,
+  reviewsTotal: 0,
   isLoading: false,
   error: null,
 
-  // 리뷰 목록 조회(프로필 페이지용)
-  getReviews: async (userId, page, pageSize) => {
-    set({ isLoading: true, error: null });
-    try {
-      const res = await fetchApi<{ data: Review[]; meta: { pagination: { total: number } } }>(
-        `/food-reviews?filters[users_permissions_user][id]=${userId}&populate=*&sort=createdAt:desc&pagination[page]=${page}&pagination[pageSize]=${pageSize}`,
-        {
-            method: 'GET',
-        }
-      );
-      set({ reviews: res.data, total: res.meta.pagination.total });
-    } catch (err) {
-      toast.error("리뷰를 불러오는 데 실패했어요.");
-      set({ error: "리뷰 로드 실패" });
-    } finally {
-      set({ isLoading: false });
-    }
-  },
-
-
-
-
 
   // 리뷰 목록 조회
-  fetchReviews: async (placeId, page, pageSize) => {
+  fetchReviews: async (query = '/food-reviews') => {
     set({ isLoading: true, error: null });
     try {
-      const res = await fetchApi<{ data: Review[]; meta: { pagination: { total: number } } }>(
-        `/food-reviews?filters[place][id]=${placeId}&populate=*&sort=createdAt:desc&pagination[page]=${page}&pagination[pageSize]=${pageSize}`,
+      const res = await fetchApi<{ data: Review[]; meta: { pagination: { total: number } } }>(query,
         {
             method: 'GET',
         }
       );
-      set({ reviews: res.data, total: res.meta.pagination.total });
+      set({ reviews: res.data, reviewsTotal: res.meta.pagination.total });
     } catch (err) {
       toast.error("리뷰를 불러오는 데 실패했어요.");
       set({ error: "리뷰 로드 실패" });

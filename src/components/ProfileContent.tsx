@@ -5,11 +5,15 @@ import { useAuthStore } from '@/store/authStore';
 import { handleFileUpload } from "@/utils/fileUpload";
 import ProfileImage from "@/components/ProfileImage";
 import { useReviewStore } from '@/store/reviewStore';
-import { ChevronsLeft, ChevronLeft, ChevronRight, ChevronsRight } from "lucide-react";
+
+import { usePlaceStore } from '@/store/placeStore';
+import Pagination from "@/components/ui/Pagination";
+import Review from "@/components/ui/review";
 
 export default function ProfileContent() {
   const { user, handleProfileUpdate } = useAuthStore();
-  const { getReviews, total, reviews, updateReview, deleteReview } = useReviewStore();
+  const { getReviews, reviewsTotal, reviews, updateReview, deleteReview } = useReviewStore();
+  const { fetchPlaces, places, placesTotal } = usePlaceStore();
   const [isEditing, setIsEditing] = useState(false);
   const [editedUser, setEditedUser] = useState({
     username: user?.username || '',
@@ -21,11 +25,15 @@ export default function ProfileContent() {
   const [error, setError] = useState<string | null>(null);
   const [myPlaces, setMyPlaces] = useState<any[]>([]);
   const [page, setPage] = useState(1);
+  const [placesPage, setPlacesPage] = useState(1);
   const [editId, setEditId] = useState<number | null>(null);
   const [editContent, setEditContent] = useState("");
   const [editRating, setEditRating] = useState(5);
 
-  const PAGE_SIZE = 2;
+
+  const PAGE_SIZE = 2; // 한 페이지에 보여줄 페이지네이션 갯수
+  const placesPages = Math.ceil(placesTotal / PAGE_SIZE); // 내가 등록한 맛집 페이지네이션 갯수
+  const reviewsPages = Math.ceil(reviewsTotal / PAGE_SIZE); // 내가 작성한 리뷰 페이지네이션 갯수
 
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files.length > 0) {
@@ -64,14 +72,25 @@ export default function ProfileContent() {
 
   useEffect(() => {
     if (user?.id) {
-      getReviews(`${user.id}`, page, PAGE_SIZE);
-      fetch(`${process.env.NEXT_PUBLIC_API_URL}/places?filters[users_permissions_user][id]=${user.id}&populate=*`)
-        .then(res => res.json())
-        .then(data => setMyPlaces(data.data || []));
+      // getReviews(`${user.id}`, page, PAGE_SIZE);
+    //   fetch(`${process.env.NEXT_PUBLIC_API_URL}/places?filters[users_permissions_user][id]=${user.id}&populate=*`)
+    //     .then(res => res.json())
+    //     .then(data => setMyPlaces(data.data || []));
     }
   }, [user, page]);
 
-  const totalPages = Math.ceil(total / PAGE_SIZE);
+  
+
+
+  useEffect(() => {
+    if (user?.id) {
+      fetchPlaces(`/places?filters[users_permissions_user][id]=${user.id}&populate=*&sort=createdAt:desc&pagination[page]=${placesPage}&pagination[pageSize]=${PAGE_SIZE}`)
+    }
+  }, [user, placesPage]);
+
+
+
+  
 
   return (
     <div className="w-full min-h-screen bg-gradient-to-br from-purple-50 to-pink-50 dark:from-gray-900 dark:to-gray-800">
@@ -145,13 +164,14 @@ export default function ProfileContent() {
         {/* 내가 등록한 맛집 */}
         <section className="bg-white dark:bg-gray-800 rounded-xl shadow p-4">
           <h2 className="font-semibold text-base mb-2">🍽 내가 등록한 맛집</h2>
-            {myPlaces.length > 0 ? (
+            {places.length > 0 ? (
               <ul className="space-y-3">
-                {myPlaces.map((place) => (
+                {places.map((place) => (
                   <li key={place.id} className="flex items-center justify-between border rounded-lg p-3">
                     <div>
                       <p className="font-semibold text-sm">{place.attributes.name}</p>
-                      <p className="text-xs text-gray-500">{place.attributes.category} · {place.attributes.address}</p>
+                      <p className="text-xs text-gray-600">{place.attributes.category}</p>
+                      <p className="text-sm text-gray-400">{place.attributes.description}</p>
                     </div>
                     <div className="flex gap-1">
                       <button className="text-xs px-2 py-1 bg-gray-200 dark:bg-gray-600 rounded">수정</button>
@@ -163,108 +183,17 @@ export default function ProfileContent() {
           ) : (
             <p className="text-sm text-gray-500">등록한 맛집이 없습니다.</p>
           )}
+
+          <Pagination
+            page={placesPage}
+            totalPages={placesPages}
+            onChange={(newPage) => setPlacesPage(newPage)}
+          />
+
         </section>
 
-
-
-
-
-        {/* 내가 작성한 리뷰 */}
-        <section className="bg-white dark:bg-gray-800 rounded-xl shadow p-4">
-          <h2 className="font-semibold text-base mb-2">📝 내가 작성한 리뷰</h2>
-          {reviews.length > 0 ? (
-            <ul className="space-y-3">
-              {reviews.map((review) => (
-                <li key={review.id} className="border rounded-lg p-3">
-                  {editId === review.id ? (
-                    <div className="space-y-2">
-                      <input
-                        className="w-full px-2 py-1 text-sm rounded border dark:bg-gray-700 dark:text-white"
-                        value={editContent}
-                        onChange={(e) => setEditContent(e.target.value)}
-                      />
-                      <div className="flex gap-1">
-                        {[1, 2, 3, 4, 5].map((i) => (
-                          <button
-                            key={i}
-                            onClick={() => setEditRating(i)}
-                            className={`text-lg ${i <= editRating ? "text-yellow-400" : "text-gray-300"}`}
-                          >★</button>
-                        ))}
-                      </div>
-                      <div className="flex gap-2 text-xs">
-                        <button
-                          className="text-green-600 hover:underline"
-                          onClick={() => {
-                            updateReview(review.id, editContent, editRating);
-                            setEditId(null);
-                          }}
-                        >저장</button>
-                        <button className="text-gray-400 hover:underline" onClick={() => setEditId(null)}>취소</button>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="flex justify-between">
-                      <div>
-                        <p className="font-semibold text-sm">{review.attributes.place?.data?.attributes?.name || '알 수 없음'}</p>
-                        <p className="text-yellow-400 text-sm">{'★'.repeat(review.attributes.rating)}</p>
-                        <p className="text-sm text-gray-700 dark:text-gray-200">{review.attributes.content}</p>
-                      </div>
-                      <div className="flex flex-col justify-between items-end gap-1">
-                        <button
-                          className="text-xs px-2 py-1 bg-gray-200 dark:bg-gray-600 rounded"
-                          onClick={() => {
-                            setEditId(review.id);
-                            setEditContent(review.attributes.content);
-                            setEditRating(review.attributes.rating);
-                          }}
-                        >수정</button>
-                        <button
-                          className="text-xs px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded"
-                          onClick={() => deleteReview(review.id)}
-                        >삭제</button>
-                      </div>
-                    </div>
-                  )}
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="text-sm text-gray-500">작성한 리뷰가 없습니다.</p>
-          )}
-
-          {totalPages > 1 && (
-            <div className="flex justify-center items-center gap-1 pt-4">
-              <button
-                disabled={page === 1}
-                onClick={() => setPage(1)}
-                className={`px-2 py-1 text-sm rounded disabled:cursor-not-allowed transition ${page === 1 ? "text-gray-300" : "text-gray-500 hover:text-purple-600"}`}
-              ><ChevronsLeft className="w-4 h-4" /></button>
-              <button
-                disabled={page === 1}
-                onClick={() => setPage(page - 1)}
-                className={`px-2 py-1 text-sm rounded disabled:cursor-not-allowed transition ${page === 1 ? "text-gray-300" : "text-gray-500 hover:text-purple-600"}`}
-              ><ChevronLeft className="w-4 h-4" /></button>
-              {[...Array(totalPages)].map((_, i) => (
-                <button
-                  key={i}
-                  onClick={() => setPage(i + 1)}
-                  className={`px-3 py-1 rounded-md text-sm font-medium transition ${i + 1 === page ? "bg-purple-600 text-white" : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200"}`}
-                >{i + 1}</button>
-              ))}
-              <button
-                disabled={page === totalPages}
-                onClick={() => setPage(page + 1)}
-                className={`px-2 py-1 text-sm rounded disabled:cursor-not-allowed transition ${page === totalPages ? "text-gray-300" : "text-gray-500 hover:text-purple-600"}`}
-              ><ChevronRight className="w-4 h-4" /></button>
-              <button
-                disabled={page === totalPages}
-                onClick={() => setPage(totalPages)}
-                className={`px-2 py-1 text-sm rounded disabled:cursor-not-allowed transition ${page === totalPages ? "text-gray-300" : "text-gray-500 hover:text-purple-600"}`}
-              ><ChevronsRight className="w-4 h-4" /></button>
-            </div>
-          )}
-        </section>
+        {/* 리뷰 댓글 (모든 맛집에 대한 내가 작성한 리뷰) */}
+        <Review title="📝 내가 작성한 리뷰" />
       </main>
     </div>
   );
