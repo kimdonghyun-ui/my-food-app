@@ -9,6 +9,8 @@ import { useReviewStore } from '@/store/reviewStore';
 import { usePlaceStore } from '@/store/placeStore';
 import Pagination from "@/components/ui/Pagination";
 import Review from "@/components/ui/review";
+import MyPlaces from "@/components/ui/myPlaces.tsx";
+
 
 export default function ProfileContent() {
   const { user, handleProfileUpdate } = useAuthStore();
@@ -70,27 +72,6 @@ export default function ProfileContent() {
     });
   }, [isEditing, user]);
 
-  useEffect(() => {
-    if (user?.id) {
-      // getReviews(`${user.id}`, page, PAGE_SIZE);
-    //   fetch(`${process.env.NEXT_PUBLIC_API_URL}/places?filters[users_permissions_user][id]=${user.id}&populate=*`)
-    //     .then(res => res.json())
-    //     .then(data => setMyPlaces(data.data || []));
-    }
-  }, [user, page]);
-
-  
-
-
-  useEffect(() => {
-    if (user?.id) {
-      fetchPlaces(`/places?filters[users_permissions_user][id]=${user.id}&populate=*&sort=createdAt:desc&pagination[page]=${placesPage}&pagination[pageSize]=${PAGE_SIZE}`)
-    }
-  }, [user, placesPage]);
-
-
-
-  
 
   return (
     <div className="w-full min-h-screen bg-gradient-to-br from-purple-50 to-pink-50 dark:from-gray-900 dark:to-gray-800">
@@ -162,35 +143,7 @@ export default function ProfileContent() {
 
 
         {/* 내가 등록한 맛집 */}
-        <section className="bg-white dark:bg-gray-800 rounded-xl shadow p-4">
-          <h2 className="font-semibold text-base mb-2">🍽 내가 등록한 맛집</h2>
-            {places.length > 0 ? (
-              <ul className="space-y-3">
-                {places.map((place) => (
-                  <li key={place.id} className="flex items-center justify-between border rounded-lg p-3">
-                    <div>
-                      <p className="font-semibold text-sm">{place.attributes.name}</p>
-                      <p className="text-xs text-gray-600">{place.attributes.category}</p>
-                      <p className="text-sm text-gray-400">{place.attributes.description}</p>
-                    </div>
-                    <div className="flex gap-1">
-                      <button className="text-xs px-2 py-1 bg-gray-200 dark:bg-gray-600 rounded">수정</button>
-                      <button className="text-xs px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded">삭제</button>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-          ) : (
-            <p className="text-sm text-gray-500">등록한 맛집이 없습니다.</p>
-          )}
-
-          <Pagination
-            page={placesPage}
-            totalPages={placesPages}
-            onChange={(newPage) => setPlacesPage(newPage)}
-          />
-
-        </section>
+        <MyPlaces title='🍽 내가 등록한 맛집' />
 
         {/* 리뷰 댓글 (모든 맛집에 대한 내가 작성한 리뷰) */}
         <Review title="📝 내가 작성한 리뷰" />

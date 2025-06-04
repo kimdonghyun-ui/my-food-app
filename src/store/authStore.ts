@@ -4,6 +4,8 @@ import { Login, LoginResponse, User, Register, ProfileUpdate } from '../types/au
 import { fetchApi } from "@/lib/fetchApi";
 import { toast } from 'react-hot-toast';
 import { useRedirectStore } from './redirectStore';
+import { usePlaceStore } from './placeStore';
+import { useReviewStore } from './reviewStore';
 
 interface AuthStore {
   error: string | null;
@@ -167,6 +169,9 @@ export const useAuthStore = create<AuthStore>()(
 
           //##### 스토어 초기화(Zustand) 시작#####
           get().reset(); //localStorage + 메모리 상태 초기화
+          usePlaceStore.getState().reset();
+          useReviewStore.getState().reset();
+
 
           useRedirectStore.getState().setLinkName('/login'); // 로그인 페이지로 리다이렉트(.ts에서는 router를 사용못하므로 해결책으로 사용)
 
