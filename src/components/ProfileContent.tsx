@@ -4,18 +4,13 @@ import { useState, useEffect } from 'react';
 import { useAuthStore } from '@/store/authStore';
 import { handleFileUpload } from "@/utils/fileUpload";
 import ProfileImage from "@/components/ProfileImage";
-import { useReviewStore } from '@/store/reviewStore';
-
-import { usePlaceStore } from '@/store/placeStore';
-import Pagination from "@/components/ui/Pagination";
 import Review from "@/components/ui/review";
 import MyPlaces from "@/components/ui/myPlaces.tsx";
+import { toast } from 'react-hot-toast';
 
 
 export default function ProfileContent() {
   const { user, handleProfileUpdate } = useAuthStore();
-  const { getReviews, reviewsTotal, reviews, updateReview, deleteReview } = useReviewStore();
-  const { fetchPlaces, places, placesTotal } = usePlaceStore();
   const [isEditing, setIsEditing] = useState(false);
   const [editedUser, setEditedUser] = useState({
     username: user?.username || '',
@@ -25,17 +20,8 @@ export default function ProfileContent() {
   });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [myPlaces, setMyPlaces] = useState<any[]>([]);
-  const [page, setPage] = useState(1);
-  const [placesPage, setPlacesPage] = useState(1);
-  const [editId, setEditId] = useState<number | null>(null);
-  const [editContent, setEditContent] = useState("");
-  const [editRating, setEditRating] = useState(5);
 
-
-  const PAGE_SIZE = 2; // 한 페이지에 보여줄 페이지네이션 갯수
-  const placesPages = Math.ceil(placesTotal / PAGE_SIZE); // 내가 등록한 맛집 페이지네이션 갯수
-  const reviewsPages = Math.ceil(reviewsTotal / PAGE_SIZE); // 내가 작성한 리뷰 페이지네이션 갯수
+  console.log('error', error)
 
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files.length > 0) {
@@ -64,13 +50,20 @@ export default function ProfileContent() {
   };
 
   useEffect(() => {
+    //수정모드 진입해서 값을 수정하고나서 저장 안누르고 취소한경우 초기화
     setEditedUser({
       username: user?.username || '',
       email: user?.email || '',
-      password: '',
+      password: user?.email === 'hello@naver.com' ? 'hello123' : '',
       profileImage: user?.profileImage || ''
     });
+
+    if ((editedUser.email === 'hello@naver.com') && isEditing) {
+      toast.success('hello@naver.com 계정은 테스트 계정이라 이메일 및 비밀번호 변경이 불가능합니다.');
+    }
+
   }, [isEditing, user]);
+
 
 
   return (
@@ -96,18 +89,28 @@ export default function ProfileContent() {
                 required
               />
               <input
+                disabled={editedUser.email === 'hello@naver.com'}
                 type="email"
                 value={editedUser.email}
                 onChange={(e) => setEditedUser(prev => ({ ...prev, email: e.target.value }))}
-                className="w-full px-3 py-1 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                className="w-full px-3 py-1 text-sm border border-gray-300 rounded-md 
+                  focus:outline-none focus:ring-2 focus:ring-blue-500 
+                  dark:bg-gray-700 dark:text-white
+                  disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed 
+                  dark:disabled:bg-gray-800 dark:disabled:text-gray-500"
                 required
               />
               <input
+                disabled={editedUser.email === 'hello@naver.com'}
                 type="password"
                 value={editedUser.password}
                 onChange={(e) => setEditedUser(prev => ({ ...prev, password: e.target.value }))}
-                placeholder="변경할 비밀번호 입력(변경하지 않으면 기존비번입력)"
-                className="w-full px-3 py-1 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                placeholder={editedUser.email === 'hello@naver.com' ? '테스트계정은 비밀번호 변경불가' : '변경하려면 입력하세요'}
+                className="w-full px-3 py-1 text-sm border border-gray-300 rounded-md 
+                  focus:outline-none focus:ring-2 focus:ring-blue-500 
+                  dark:bg-gray-700 dark:text-white
+                  disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed 
+                  dark:disabled:bg-gray-800 dark:disabled:text-gray-500"
                 required
               />
 

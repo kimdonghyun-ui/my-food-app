@@ -189,6 +189,7 @@ export default function MyPlaces({ title }: Props) {
 
     setSelectedPlace(place);
     setEditedName(place.attributes.name);
+    setEditedCategory(place.attributes.category);
     setEditedDesc(place.attributes.description || "");
     setEditModalOpen(true);
   };
