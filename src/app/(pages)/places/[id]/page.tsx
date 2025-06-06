@@ -1,27 +1,20 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect } from "react";
 import { useParams } from "next/navigation";
 import { usePlaceStore } from "@/store/placeStore";
-import { loadKakaoMap } from "@/utils/utils";
 import Review from "@/components/ui/review";
 import MapComponent from "@/components/ui/mapComponent";
 
 export default function PlaceDetailPage() {
     const { id } = useParams<{ id: string }>(); // 파라미터 가져오기 [예시] = http://localhost:3000/places/9 = id에 9가 들어감
-    const { fetchPlace, place } = usePlaceStore(); // store 에서 가져오기
-    const [mapLoaded, setMapLoaded] = useState(false); // 지도 로드 상태 관리(처음은 false이다가 loadKakaoMap 실행 완료후 true로 변경됨)
+    const { place, fetchPlace } = usePlaceStore(); // store 에서 가져오기
 
-  useEffect(() => {
-    //loadKakaoMap = 카카오 맵 스크립트 head에 삽입 후 콜백 실행(setMapLoaded, fetchPlace)
-    if (!id) return;
-    loadKakaoMap(() => { // 카카오 스크립트 삽입 및 로드 완료
-      setMapLoaded(true); // 지도 로드 상태를 true로 변경
-      fetchPlace(id); // 해당 id의 맛집의 상세 데이터 가져오기
-    });
-  }, [id]);
+    useEffect(() => {
+        fetchPlace(id);
+    }, [id]);
 
-  if (!place) return <div className="p-4">로딩 중...</div>;
+    if (!place) return <div className="p-4">로딩 중...</div>;
 
   return (
     <main className="max-w-md mx-auto p-4 space-y-4">
@@ -33,11 +26,16 @@ export default function PlaceDetailPage() {
 
         {/* 지도 */}
         <MapComponent
-            mapLoaded={mapLoaded}
-            markers={[{ lat: place.attributes.latitude, lng: place.attributes.longitude }]}
-            center={{ lat: place.attributes.latitude, lng: place.attributes.longitude }}
-            zoom={4}
-            height="250px"
+        // category={category} 
+        // categorys={["전체", "한식", "중식", "일식", "디저트", "카페", "기타"]} 
+        height="400px"
+        //   onPlaceClick={(place: Place) => {
+        //     console.log('마커 클릭했음', place)
+        //     router.push(`/places/${place.id}`);
+        //   }}
+        //   selectable={false} // 등록 모드
+        //   onSelectLocation={(lat, lng) => console.log(lat, lng)} // 등록 모드에서 좌표 선택 시
+        marker={{ lat: place.attributes.latitude, lng: place.attributes.longitude }} // 상세 모드
         />
 
         {/* 리뷰 댓글(해당 맛집에 대한 리뷰) */}

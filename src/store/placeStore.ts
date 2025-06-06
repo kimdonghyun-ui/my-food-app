@@ -37,7 +37,7 @@ export interface PlacePostPayload {
     fetchPlaces: (query?: string) => Promise<void>;
     fetchPlace: (id: string) => Promise<void>;
     deletePlace: (id: number) => Promise<void>;
-    
+    updatePlace: (id: number, data: PlacePostPayload) => Promise<void>;
     // 스토어 초기화
     reset: () => void;
   }
@@ -84,6 +84,35 @@ export interface PlacePostPayload {
             set({ isLoading: false });
           }
         },
+
+
+
+        updatePlace: async (id: number, data) => {
+          set({ isLoading: true, error: null });
+          try {
+            const res = await fetchApi<{ data: Place }>(`/places/${id}`, {
+              method: 'PUT',
+              body: JSON.stringify({ data }),
+            });
+  console.log('res', res)
+
+            const updatedPlace = res.data;
+
+            set((state) => ({
+              places: state.places.map((place) =>
+                place.id === id ? updatedPlace : place
+              ),
+            }));
+
+          } catch (err) {
+            toast.error("맛집 수정에 실패했어요.");
+            set({ error: "맛집 수정에 실패했어요." });
+          } finally {
+            set({ isLoading: false });
+          }
+        },
+        
+
 
 
 
