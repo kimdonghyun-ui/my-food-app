@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { LocateFixed, PlusIcon, Search } from "lucide-react";
@@ -9,11 +9,6 @@ import { Place } from "@/store/placeStore";
 import { toast } from "react-hot-toast";
 import MapComponent from "@/components/ui/mapComponent";
 
-// 타입 먼저 선언
-type MarkerWithOverlay = {
-  marker: kakao.maps.Marker;
-  customOverlay: kakao.maps.CustomOverlay;
-};
 
 export default function HomePage() {
   const router = useRouter();
@@ -21,6 +16,7 @@ export default function HomePage() {
   const [category, setCategory] = useState<string>("전체");
   const [keyword, setKeyword] = useState<string>("");
   const [inputValue, setInputValue] = useState("");
+  const mapInstance = useRef<kakao.maps.Map | null>(null);
 
   const handleCategoryClick = (cat: string) => {
     setCategory(cat);
@@ -30,7 +26,11 @@ export default function HomePage() {
     setKeyword(inputValue);
     setCategory('전체');
   };
-
+  
+  const categoryOptions = useMemo(
+    () => ["전체", "한식", "중식", "일식", "디저트", "카페", "기타"],
+    []
+  );
 
   const handleGoToCurrentLocation = () => {
     if (navigator.geolocation) {
@@ -127,15 +127,18 @@ useEffect(() => {
         {/* 카테고리 버튼 영역 */}
 
         {/* 지도 영역 */}
+        {/* 메인용 */}
         <MapComponent
-          keyword={keyword}
-          height="400px"
-          category={category} 
-          categorys={["전체", "한식", "중식", "일식", "디저트", "카페", "기타"]} 
+          keyword={keyword} // 검색 키워드
+          height="400px" // 놓이 
+          category={category} // 카테고리
+          categorys={categoryOptions}
           onPlaceClick={(place: Place) => {
             console.log('마커 클릭했음', place)
             router.push(`/places/${place.id}`);
           }}
+        //   marker={{ lat: 37.5665, lng: 126.978 }}
+          selectable={false}
         />
         {/* 지도 영역 */}
 

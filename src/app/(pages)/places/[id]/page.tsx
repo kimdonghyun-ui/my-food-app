@@ -12,7 +12,7 @@ export default function PlaceDetailPage() {
 
     useEffect(() => {
         fetchPlace(id);
-    }, [id]);
+    }, [id, fetchPlace]);
 
     if (!place) return <div className="p-4">로딩 중...</div>;
 
@@ -25,17 +25,18 @@ export default function PlaceDetailPage() {
       <p className="text-gray-700">소개 : {place.attributes.description || "소개글이 없습니다."}</p>
 
         {/* 지도 */}
-        <MapComponent
-        // category={category} 
-        // categorys={["전체", "한식", "중식", "일식", "디저트", "카페", "기타"]} 
-        height="400px"
+            {/* 상세용 */}
+            <MapComponent
+        //   keyword={keyword} // 검색 키워드
+          height="400px" // 놓이 
+        //   category={category} // 카테고리
+        //   categorys={categoryOptions}
         //   onPlaceClick={(place: Place) => {
         //     console.log('마커 클릭했음', place)
         //     router.push(`/places/${place.id}`);
         //   }}
-        //   selectable={false} // 등록 모드
-        //   onSelectLocation={(lat, lng) => console.log(lat, lng)} // 등록 모드에서 좌표 선택 시
-        marker={{ lat: place.attributes.latitude, lng: place.attributes.longitude }} // 상세 모드
+          marker={{ lat: place.attributes.latitude, lng: place.attributes.longitude }}
+          selectable={false}
         />
 
         {/* 리뷰 댓글(해당 맛집에 대한 리뷰) */}

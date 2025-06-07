@@ -41,7 +41,7 @@ export const config = {
     '/register', // 회원가입
     '/profile', // 프로필
     '/add', // 맛집 추가
-    
+    '/places/(.*)', // 맛집 상세
     // '/dashboard', // 대시보드
     // '/statistics',  // 통계
     // '/transactions',  // 거래내역

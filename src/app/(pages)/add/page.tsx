@@ -9,11 +9,6 @@ import { toast } from "react-hot-toast";
 import { useAuthStore } from "@/store/authStore";
 import MapComponent from "@/components/ui/mapComponent";
 
-declare global {
-  interface Window {
-    kakao: any;
-  }
-}
 
 export default function AddPlacePage() {
   const [name, setName] = useState(""); // 맛집 이름
@@ -21,8 +16,7 @@ export default function AddPlacePage() {
   const [description, setDescription] = useState(""); // 설명
 
   // 위치 좌표
-  const [lat, setLat] = useState<number | null>(null);
-  const [lng, setLng] = useState<number | null>(null);
+  const [selectedLocation, setSelectedLocation] = useState<{ lat: number | null, lng: number | null }>({ lat: null, lng: null });
 
   const { user } = useAuthStore();
 
@@ -34,12 +28,12 @@ export default function AddPlacePage() {
         toast.error("로그인 후 이용해주세요.");
         return;
     }
-    if (lat === null || lng === null) {
+    if (selectedLocation.lat === null || selectedLocation.lng === null) {
         toast.error("지도를 클릭하여 위치를 선택해주세요.");
         return;
     }
 
-    await createPlace({ name, category, description, latitude: lat, longitude: lng, users_permissions_user: user.id });
+    await createPlace({ name, category, description, latitude: selectedLocation.lat, longitude: selectedLocation.lng, users_permissions_user: user.id });
   };
 
 
@@ -50,29 +44,30 @@ export default function AddPlacePage() {
       <form onSubmit={handleSubmit} className="flex flex-col gap-4 max-w-md mx-auto">
         <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="맛집 이름(필수)" required />
         <Input value={category} onChange={(e) => setCategory(e.target.value)} placeholder="카테고리(필수)" required />
-        <Textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="설명" />
+        <Textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="설명" required />
 
         {/* 지도 */}
+        {/* 등록용 */}
         <MapComponent
-          // category={category} 
-          // categorys={["전체", "한식", "중식", "일식", "디저트", "카페", "기타"]} 
-          height="400px"
-          // onPlaceClick={(place: Place) => {
-          //   console.log('마커 클릭했음', place)
-          //   router.push(`/places/${place.id}`);
-          // }}
-          selectable={true} // 등록 모드
+        //   keyword={keyword} // 검색 키워드
+          height="400px" // 놓이 
+        //   category={category} // 카테고리
+        //   categorys={categoryOptions}
+        //   onPlaceClick={(place: Place) => {
+        //     console.log('마커 클릭했음', place)
+        //     router.push(`/places/${place.id}`);
+        //   }}
+          // marker={{lat: selectedLocation.lat, lng: selectedLocation.lng}}
+          selectable={true}
           onSelectLocation={(lat, lng) => {
-            console.log('lat, lng', lat, lng)
-            setLat(lat);
-            setLng(lng);
-          }} // 등록 모드에서 좌표 선택 시
-          marker={{ lat: 37.5, lng: 126.9 }} // 상세 모드
+            setSelectedLocation({ lat, lng });
+            console.log('선택된 위치:', lat, lng);
+          }}
         />
 
         {/* 위치 */}
         <div className="text-sm text-gray-600 dark:text-gray-400">
-            위치: {lat && lng ? `${lat.toFixed(6)}, ${lng.toFixed(6)}` : "지도에서 위치를 클릭해주세요"}
+            위치: {selectedLocation.lat && selectedLocation.lng ? `${selectedLocation.lat.toFixed(6)}, ${selectedLocation.lng.toFixed(6)}` : "지도에서 위치를 클릭해주세요"}
         </div>
 
         {/* 등록 버튼 */}

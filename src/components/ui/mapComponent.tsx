@@ -1,246 +1,46 @@
-// "use client";
-// import { useEffect, useRef, useState } from "react";
-// import { Place, usePlaceStore } from "@/store/placeStore";
-
-// declare global {
-//   interface Window {
-//     kakao: any;
-//   }
-// }
-
-// interface MapComponentProps {
-//   category?: string;
-//   categorys?: string[];
-//   onPlaceClick?: (place: Place) => void;
-//   height?: string;
-
-//   selectable?: boolean;
-//   onSelectLocation?: (lat: number, lng: number) => void;
-
-//   marker?: { lat: number; lng: number };
-//   keyword?: string;
-// }
-
-// export default function MapComponent({
-//   category = "전체",
-//   categorys = [],
-//   onPlaceClick,
-//   height = "300px",
-//   selectable = false,
-//   onSelectLocation,
-//   marker,
-//   keyword
-// }: MapComponentProps) {
-
-//   const categoryRef = useRef(category);
-//   useEffect(() => {
-//     categoryRef.current = category;
-//   }, [category]);
-
-//   const keywordRef = useRef(keyword);
-//   useEffect(() => {
-//     keywordRef.current = keyword;
-//   }, [keyword]);
-
-
-//   const mapRef = useRef<HTMLDivElement>(null);
-//   const mapInstance = useRef<any>(null);
-//   const [mapLoaded, setMapLoaded] = useState(false);
-//   const { fetchPlaces, places } = usePlaceStore();
-//   const markersRef = useRef<any[]>([]);
-
-//   const injectKakaoMapScript = () => {
-//     const script = document.createElement("script");
-//     script.id = "kakao-map-script";
-//     script.src = `//dapi.kakao.com/v2/maps/sdk.js?appkey=${process.env.NEXT_PUBLIC_KAKAO_MAP_API_KEY}&autoload=false`;
-//     script.async = true;
-//     script.onload = () => {
-//       window.kakao.maps.load(() => setMapLoaded(true));
-//     };
-//     document.head.appendChild(script);
-//   };
-
-//   useEffect(() => {
-//     if (document.getElementById("kakao-map-script")) {
-//       if (window.kakao) {
-//         window.kakao.maps.load(() => setMapLoaded(true));
-//       }
-//     } else {
-//       injectKakaoMapScript();
-//     }
-//   }, []);
-
-//   const getCategoryFilterParams = (category: string): string => {
-//     if (!categorys.length || category === "전체") return "";
-//     if (category === "기타") {
-//       return categorys.map((cat, i) => `&filters[category][$notIn][${i}]=${cat}`).join("");
-//     }
-//     return `&filters[category][$eq]=${category}`;
-//   };
-
-//   const loadPlacesByBounds = async (bounds: kakao.maps.LatLngBounds) => {
-//     const currentCategory = categoryRef.current;
-//     const currentKeyword = keywordRef.current;
-//     if (!currentCategory) return;
-
-//     const sw = bounds.getSouthWest();
-//     const ne = bounds.getNorthEast();
-
-//     const query =
-//       `/places?filters[latitude][$gte]=${sw.getLat()}&filters[latitude][$lte]=${ne.getLat()}` +
-//       `&filters[longitude][$gte]=${sw.getLng()}&filters[longitude][$lte]=${ne.getLng()}` +
-//       getCategoryFilterParams(currentCategory) +
-//       (currentKeyword && `&filters[name][$eq]=${currentKeyword}`);
-
-//     await fetchPlaces(query);
-//   };
-
-//   useEffect(() => {
-//     if (!mapLoaded || !window.kakao || !mapRef.current) return;
-
-//     const { kakao } = window;
-
-//     if (mapInstance.current) {
-//       // ✅ 지도는 이미 있으니까, 여기서 bounds로 API 호출만 하자
-//       const bounds = mapInstance.current.getBounds();
-//       loadPlacesByBounds(bounds);
-//       return;
-//     }
-
-//     const map = new kakao.maps.Map(mapRef.current, {
-//       center: new kakao.maps.LatLng(37.5665, 126.978),
-//       level: 3,
-//     });
-//     mapInstance.current = map;
-
-//     if (selectable && onSelectLocation) {
-//       kakao.maps.event.addListener(map, "click", (e: any) => {
-//         const latlng = e.latLng;
-//         onSelectLocation(latlng.getLat(), latlng.getLng());
-
-//         markersRef.current.forEach(({ marker }: any) => marker.setMap(null));
-//         markersRef.current = [];
-
-//         const marker = new kakao.maps.Marker({ position: latlng, map });
-//         markersRef.current.push({ marker });
-//       });
-//     } else if (marker) {
-//       const pos = new kakao.maps.LatLng(marker.lat, marker.lng);
-//       const singleMarker = new kakao.maps.Marker({ position: pos, map });
-//       markersRef.current.push({ marker: singleMarker });
-//       map.setCenter(pos);
-//     } else {
-//       kakao.maps.event.addListener(map, "idle", () => {
-//         const bounds = map.getBounds();
-//         loadPlacesByBounds(bounds);
-//       });
-
-//       const bounds = map.getBounds();
-//       loadPlacesByBounds(bounds);
-//     }
-//   }, [mapLoaded, category, keyword]);
-
-
-
-  
-//   useEffect(() => {
-//     if (!mapInstance.current || !window.kakao || selectable || marker) return;
-//     const map = mapInstance.current;
-//     const { kakao } = window;
-
-//     markersRef.current.forEach(({ marker }: any) => marker.setMap(null));
-//     markersRef.current = [];
-
-//     places.forEach((place) => {
-//       const { latitude, longitude, name, category } = place.attributes;
-//       const position = new kakao.maps.LatLng(latitude, longitude);
-//       const marker = new kakao.maps.Marker({ position, map });
-
-//       const content = document.createElement("div");
-//       content.innerHTML = `
-//         <div class="custom-overlay-content inline-block bg-white rounded-md shadow-md px-[10px] py-[5px] text-[14px] whitespace-nowrap pointer-events-auto border border-gray-400 cursor-pointer">
-//           <strong class="text-purple-600 text-[16px]">${name}</strong><br />
-//           <span class="text-gray-500 text-[13px]">${category}</span>
-//         </div>`;
-
-//       const overlay = new kakao.maps.CustomOverlay({ content, position, yAnchor: 1, map: null });
-//       const show = () => overlay.setMap(map);
-//       const hide = () => setTimeout(() => overlay.setMap(null), 200);
-
-//       kakao.maps.event.addListener(marker, "mouseover", show);
-//       kakao.maps.event.addListener(marker, "mouseout", hide);
-//       content.addEventListener("mouseenter", show);
-//       content.addEventListener("mouseleave", hide);
-
-//       const div = content.querySelector(".custom-overlay-content");
-//       if (div && onPlaceClick) div.addEventListener("click", () => onPlaceClick(place));
-
-//       markersRef.current.push({ marker, overlay });
-//     });
-//   }, [places]);
-
-//   return <div ref={mapRef} style={{ width: "100%", height }} />;
-// }
-
-
-
-
-
-
-
-
-
-
-
-
 "use client";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Place, usePlaceStore } from "@/store/placeStore";
 
-declare global {
-  interface Window {
-    kakao: any;
-  }
-}
-
 interface MapComponentProps {
+  keyword?: string;
+  height?: string;
   category?: string;
   categorys?: string[];
   onPlaceClick?: (place: Place) => void;
-  height?: string;
-
   selectable?: boolean;
   onSelectLocation?: (lat: number, lng: number) => void;
-
   marker?: { lat: number; lng: number };
-  keyword?: string;
 }
 
 export default function MapComponent({
+  keyword = "",
+  height = "300px",
   category = "전체",
   categorys = [],
   onPlaceClick,
-  height = "300px",
   selectable = false,
   onSelectLocation,
   marker,
-  keyword,
 }: MapComponentProps) {
+  const [mapLoaded, setMapLoaded] = useState(false);
+  const { fetchPlaces, places } = usePlaceStore();
+  const mapRef = useRef<HTMLDivElement>(null);
+  const mapInstance = useRef<kakao.maps.Map | null>(null);
+  const markersRef = useRef<kakao.maps.Marker[]>([]);
+  const clickMarkerRef = useRef<kakao.maps.Marker | null>(null);
+  const clickListenerRef = useRef<kakao.maps.MapEventListener | null>(null);
+
   const categoryRef = useRef(category);
+  const keywordRef = useRef(keyword);
+
   useEffect(() => {
     categoryRef.current = category;
   }, [category]);
 
-  const keywordRef = useRef(keyword);
   useEffect(() => {
     keywordRef.current = keyword;
   }, [keyword]);
-
-  const mapRef = useRef<HTMLDivElement>(null);
-  const mapInstance = useRef<any>(null);
-  const [mapLoaded, setMapLoaded] = useState(false);
-  const { fetchPlaces, places } = usePlaceStore();
-  const markersRef = useRef<any[]>([]);
 
   const injectKakaoMapScript = () => {
     const script = document.createElement("script");
@@ -263,125 +63,146 @@ export default function MapComponent({
     }
   }, []);
 
-  const getCategoryFilterParams = (category: string): string => {
-    if (!categorys.length || category === "전체") return "";
-    if (category === "기타") {
-      return categorys
-        .map((cat, i) => `&filters[category][$notIn][${i}]=${cat}`)
-        .join("");
-    }
-    return `&filters[category][$eq]=${category}`;
-  };
+  const loadPlacesByBounds = useCallback(
+    async (bounds: kakao.maps.LatLngBounds) => {
+      const currentCategory = categoryRef.current;
+      const currentKeyword = keywordRef.current;
 
-  const loadPlacesByBounds = async (bounds: kakao.maps.LatLngBounds) => {
-    const currentCategory = categoryRef.current;
-    const currentKeyword = keywordRef.current;
-    if (!currentCategory) return;
+      if (!currentCategory) return;
 
-    const sw = bounds.getSouthWest();
-    const ne = bounds.getNorthEast();
+      const sw = bounds.getSouthWest();
+      const ne = bounds.getNorthEast();
 
-    const query =
-      `/places?filters[latitude][$gte]=${sw.getLat()}&filters[latitude][$lte]=${ne.getLat()}` +
-      `&filters[longitude][$gte]=${sw.getLng()}&filters[longitude][$lte]=${ne.getLng()}` +
-      getCategoryFilterParams(currentCategory) +
-      (currentKeyword && `&filters[name][$eq]=${currentKeyword}`);
+      const getCategoryFilterParams = (category: string): string => {
+        if (!categorys.length || category === "전체") return "";
+        if (category === "기타") {
+          return categorys
+            .map((cat, i) => `&filters[category][$notIn][${i}]=${cat}`)
+            .join("");
+        }
+        return `&filters[category][$eq]=${category}`;
+      };
 
-    await fetchPlaces(query);
-  };
+      const query =
+        `/places?filters[latitude][$gte]=${sw.getLat()}&filters[latitude][$lte]=${ne.getLat()}` +
+        `&filters[longitude][$gte]=${sw.getLng()}&filters[longitude][$lte]=${ne.getLng()}` +
+        getCategoryFilterParams(currentCategory) +
+        (currentKeyword ? `&filters[name][$eq]=${currentKeyword}` : "");
+
+      await fetchPlaces(query);
+    },
+    [categorys, fetchPlaces]
+  );
 
   useEffect(() => {
     if (!mapLoaded || !window.kakao || !mapRef.current) return;
 
     const { kakao } = window;
+    let map = mapInstance.current;
 
-    if (mapInstance.current) {
-      const bounds = mapInstance.current.getBounds();
-      loadPlacesByBounds(bounds);
+    if (!map) {
+      map = new kakao.maps.Map(mapRef.current, {
+        center: new kakao.maps.LatLng(37.5665, 126.978),
+        level: 3,
+      });
+      mapInstance.current = map;
+    }
+
+    if (selectable) {
+      if (marker) {
+        const pos = new kakao.maps.LatLng(marker.lat, marker.lng);
+
+        if (!clickMarkerRef.current) {
+          const m = new kakao.maps.Marker({ position: pos });
+          m.setMap(map);
+          clickMarkerRef.current = m;
+        } else {
+          clickMarkerRef.current.setMap(map);
+          clickMarkerRef.current.setPosition(pos);
+        }
+      }
+
+      if (clickListenerRef.current) {
+        kakao.maps.event.removeListener(map, "click", clickListenerRef.current);
+      }
+
+      const clickHandler = (mouseEvent: kakao.maps.event.MouseEvent) => {
+        const latlng = mouseEvent.latLng;
+
+        if (!clickMarkerRef.current) {
+          const m = new kakao.maps.Marker({ position: latlng });
+          m.setMap(map);
+          clickMarkerRef.current = m;
+        } else {
+          clickMarkerRef.current.setPosition(latlng);
+        }
+
+        onSelectLocation?.(latlng.getLat(), latlng.getLng());
+      };
+
+      kakao.maps.event.addListener(map, "click", clickHandler);
+      clickListenerRef.current = clickHandler;
       return;
     }
 
-    const map = new kakao.maps.Map(mapRef.current, {
-      center: new kakao.maps.LatLng(37.5665, 126.978),
-      level: 3,
-    });
-    mapInstance.current = map;
+    if (marker && !selectable) {
+      markersRef.current.forEach((m) => m.setMap(null));
+      markersRef.current = [];
 
-    // ✅ marker가 있으면 초기 마커 표시 (selectable 여부 관계없이)
-    if (marker) {
       const pos = new kakao.maps.LatLng(marker.lat, marker.lng);
-      const initialMarker = new kakao.maps.Marker({ position: pos, map });
-      markersRef.current.push({ marker: initialMarker });
+      const m = new kakao.maps.Marker({ position: pos });
+      m.setMap(map);
       map.setCenter(pos);
+      markersRef.current = [m];
+      return;
     }
 
-    // ✅ selectable일 때 클릭으로 마커 찍기
-    if (selectable && onSelectLocation) {
-      kakao.maps.event.addListener(map, "click", (e: any) => {
-        const latlng = e.latLng;
-        onSelectLocation(latlng.getLat(), latlng.getLng());
+    const bounds = map.getBounds();
+    loadPlacesByBounds(bounds);
 
-        markersRef.current.forEach(({ marker }: any) => marker.setMap(null));
-        markersRef.current = [];
-
-        const marker = new kakao.maps.Marker({ position: latlng, map });
-        markersRef.current.push({ marker });
-      });
-    }
-
-    // ✅ 일반 지도일 경우 idle에 따라 장소 불러오기
-    if (!selectable && !marker) {
-      kakao.maps.event.addListener(map, "idle", () => {
-        const bounds = map.getBounds();
-        loadPlacesByBounds(bounds);
-      });
-
-      const bounds = map.getBounds();
+    const idleHandler = () => {
+      const bounds = map!.getBounds();
       loadPlacesByBounds(bounds);
-    }
-  }, [mapLoaded, category, keyword]);
+    };
+
+    kakao.maps.event.addListener(map, "idle", idleHandler);
+
+    return () => {
+      kakao.maps.event.removeListener(map, "idle", idleHandler);
+    };
+  }, [mapLoaded, loadPlacesByBounds, marker, selectable, onSelectLocation]);
 
   useEffect(() => {
-    if (!mapInstance.current || !window.kakao || selectable || marker) return;
-    const map = mapInstance.current;
-    const { kakao } = window;
+    if (marker || !mapInstance.current) return;
 
-    markersRef.current.forEach(({ marker }: any) => marker.setMap(null));
+    markersRef.current.forEach((m) => m.setMap(null));
     markersRef.current = [];
 
-    places.forEach((place) => {
-      const { latitude, longitude, name, category } = place.attributes;
-      const position = new kakao.maps.LatLng(latitude, longitude);
-      const marker = new kakao.maps.Marker({ position, map });
+    if (places.length === 0) return;
 
-      const content = document.createElement("div");
-      content.innerHTML = `
-        <div class="custom-overlay-content inline-block bg-white rounded-md shadow-md px-[10px] py-[5px] text-[14px] whitespace-nowrap pointer-events-auto border border-gray-400 cursor-pointer">
-          <strong class="text-purple-600 text-[16px]">${name}</strong><br />
-          <span class="text-gray-500 text-[13px]">${category}</span>
-        </div>`;
+    const { kakao } = window;
+    const newMarkers = places.map((place) => {
+      const pos = new kakao.maps.LatLng(
+        place.attributes.latitude,
+        place.attributes.longitude
+      );
+      const m = new kakao.maps.Marker({ position: pos, map: mapInstance.current! });
 
-      const overlay = new kakao.maps.CustomOverlay({
-        content,
-        position,
-        yAnchor: 1,
-        map: null,
-      });
+      if (onPlaceClick) {
+        kakao.maps.event.addListener(m, "click", () => onPlaceClick(place));
+      }
 
-      const show = () => overlay.setMap(map);
-      const hide = () => setTimeout(() => overlay.setMap(null), 200);
-
-      kakao.maps.event.addListener(marker, "mouseover", show);
-      kakao.maps.event.addListener(marker, "mouseout", hide);
-      content.addEventListener("mouseenter", show);
-      content.addEventListener("mouseleave", hide);
-
-      const div = content.querySelector(".custom-overlay-content");
-      if (div && onPlaceClick) div.addEventListener("click", () => onPlaceClick(place));
-
-      markersRef.current.push({ marker, overlay });
+      return m;
     });
-  }, [places]);
+
+    markersRef.current = newMarkers;
+  }, [places, onPlaceClick, marker]);
+
+  useEffect(() => {
+    if (!mapInstance.current || marker) return;
+    const bounds = mapInstance.current.getBounds();
+    loadPlacesByBounds(bounds);
+  }, [category, keyword]);
 
   return <div ref={mapRef} style={{ width: "100%", height }} />;
 }

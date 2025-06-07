@@ -138,7 +138,7 @@
 import { useEffect, useState } from "react";
 import { Place, usePlaceStore } from "@/store/placeStore";
 import { useAuthStore } from "@/store/authStore";
-import Pagination from "@/components/ui/Pagination";
+import Pagination from "@/components/ui/pagination";
 import MapComponent from "@/components/ui/mapComponent";
 import Modal from "@/components/ui/modal";
 import { Button } from "@/components/ui/button";
@@ -153,19 +153,18 @@ interface Props {
 export default function MyPlaces({ title }: Props) {
   const { user } = useAuthStore();
   const { fetchPlaces, places, placesTotal, deletePlace, updatePlace } = usePlaceStore();
-  const [lat, setLat] = useState(0);
-  const [lng, setLng] = useState(0);
+  // const [lat, setLat] = useState(0);
+  // const [lng, setLng] = useState(0);
+
+  const [selectedLocation, setSelectedLocation] = useState<{ lat: number, lng: number }>({ lat: 37.5665, lng: 126.978 });
   const [page, setPage] = useState(1);
   const [selectedPlace, setSelectedPlace] = useState<Place | null>(null);
   const [editModalOpen, setEditModalOpen] = useState(false);
-  // const [isOpen, setIsOpen] = useState(false);
   const [editedName, setEditedName] = useState("");
   const [editedCategory, setEditedCategory] = useState("");
   const [editedDesc, setEditedDesc] = useState("");
   const PAGE_SIZE = 2;
 
-
-  const [mapEdit, setMapEdit] = useState(false);
 
   useEffect(() => {
     if (user?.id) {
@@ -173,19 +172,12 @@ export default function MyPlaces({ title }: Props) {
         `/places?filters[users_permissions_user][id]=${user.id}&populate=*&sort=createdAt:desc&pagination[page]=${page}&pagination[pageSize]=${PAGE_SIZE}`
       );
     }
-  }, [user, page]);
+  }, [user, page, fetchPlaces]);
 
   const totalPages = Math.ceil(placesTotal / PAGE_SIZE);
 
-  // const handleOpenModal = (place: Place) => {
-  //   setLat(place.attributes.latitude);
-  //   setLng(place.attributes.longitude);
-  //   setIsOpen(true);
-  // };
-
   const handleEditModal = (place: Place) => {
-    setLat(place.attributes.latitude);
-    setLng(place.attributes.longitude);
+    setSelectedLocation({ lat: place.attributes.latitude, lng: place.attributes.longitude });
 
     setSelectedPlace(place);
     setEditedName(place.attributes.name);
@@ -210,7 +202,7 @@ export default function MyPlaces({ title }: Props) {
     
     if (!selectedPlace) return;
     await updatePlace(selectedPlace.id, 
-      { name: editedName, category: editedCategory, description: editedDesc, latitude: lat, longitude: lng, users_permissions_user: user?.id }
+      { name: editedName, category: editedCategory, description: editedDesc, latitude: selectedLocation.lat, longitude: selectedLocation.lng, users_permissions_user: user?.id }
     );
     setEditModalOpen(false);
     // fetchPlaces(
@@ -261,15 +253,7 @@ export default function MyPlaces({ title }: Props) {
         onChange={(newPage) => setPage(newPage)}
       />
 
-      {/* 지도 모달 */}
-      {/* <Modal isOpen={isOpen} onClose={() => setIsOpen(false)}>
-        <h2 className="text-lg font-bold mb-4">위치 보기</h2>
-        <div className="mb-4">
-
-        </div>
-        <Button onClick={() => setIsOpen(false)}>닫기</Button>
-      </Modal> */}
-
+     
       {/* 수정 모달 */}
       <Modal isOpen={editModalOpen} onClose={() => setEditModalOpen(false)}>
         <h2 className="text-lg font-bold mb-4">맛집 수정</h2>
@@ -290,24 +274,24 @@ export default function MyPlaces({ title }: Props) {
             placeholder="설명"
           />
 
+          {/* 지도 모달 */}
+          {/* 등록용 */}
           <MapComponent
-            // category={category} 
-            // categorys={["전체", "한식", "중식", "일식", "디저트", "카페", "기타"]} 
-            height="300px"
-            // onPlaceClick={(place: Place) => {
-            //   console.log('마커 클릭했음', place)
-            //   router.push(`/places/${place.id}`);
-            // }}
-            selectable={true} // 등록 모드
-            onSelectLocation={(lat, lng) => {
-              console.log('lat, lng', lat, lng)
-              setLat(lat);
-              setLng(lng);
-              setMapEdit(false);
-            }} // 등록 모드에서 좌표 선택 시
-            marker={{ lat: lat, lng: lng }} // 상세 모드
-            // marker={{ lat: 37.5, lng: 126.9 }} // 상세 모드
-          />
+        //   keyword={keyword} // 검색 키워드
+          height="400px" // 놓이 
+        //   category={category} // 카테고리
+        //   categorys={categoryOptions}
+        //   onPlaceClick={(place: Place) => {
+        //     console.log('마커 클릭했음', place)
+        //     router.push(`/places/${place.id}`);
+        //   }}
+          marker={{lat: selectedLocation.lat, lng: selectedLocation.lng}}
+          selectable={true}
+          onSelectLocation={(lat, lng) => {
+            setSelectedLocation({ lat, lng });
+            console.log('선택된 위치:', lat, lng);
+          }}
+        />
 
         </div>
         <div className="mt-6 flex justify-end gap-2">

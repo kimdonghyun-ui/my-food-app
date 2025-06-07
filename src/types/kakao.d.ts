@@ -1,7 +1,26 @@
 export {};
 
 declare global {
+
+  namespace kakao.maps.event {
+    function addListener(
+      target: kakao.maps.Map | kakao.maps.Marker,
+      type: string,
+      listener: (...args: unknown[]) => void
+    ): void;
+
+    function removeListener(
+      target: kakao.maps.Map | kakao.maps.Marker,
+      type: string,
+      listener: (...args: unknown[]) => void
+    ): void;
+  }
+
   namespace kakao.maps {
+    interface MouseEvent {
+      latLng: kakao.maps.LatLng;
+    }
+
     class LatLng {
       constructor(lat: number, lng: number);
       getLat(): number;
@@ -55,12 +74,33 @@ declare global {
       getPosition(): LatLng;
     }
 
+    // const event: {
+    //   // ✅ 수정 예시
+    //   addListener(
+    //     target: kakao.maps.Map | kakao.maps.Marker, // 정확한 대상들로 대체
+    //     type: string,
+    //     listener: () => void
+    //   ): void;
+    // };
+    
     const event: {
-      addListener(target: any, type: string, listener: () => void): void;
+      addListener(
+        target: kakao.maps.Map | kakao.maps.Marker,
+        type: string,
+        listener: (event: { latLng: kakao.maps.LatLng }) => void
+      ): void;
     };
+    
+
+
   }
 
   interface Window {
     kakao: typeof kakao;
+  }
+  namespace kakao {
+    namespace maps {
+      function load(callback: () => void): void;
+    }
   }
 }

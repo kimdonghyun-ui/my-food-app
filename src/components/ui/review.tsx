@@ -5,7 +5,7 @@ import { useAuthStore } from "@/store/authStore";
 import { useReviewStore } from "@/store/reviewStore";
 import { Input } from "./input";
 
-import Pagination from "@/components/ui/Pagination";
+import Pagination from "@/components/ui/pagination";
 
 interface Review {
   id: number;
@@ -82,7 +82,7 @@ export default function Review({ placeId, title }: Props) {
     : `/food-reviews?filters[users_permissions_user][id]=${user.id}&populate=*&sort=createdAt:desc&pagination[page]=${page}&pagination[pageSize]=${PAGE_SIZE}`;
 
     fetchReviews(queryString);
-  }, [page, user]);
+  }, [page, user, fetchReviews, placeId]);
 
 
   return (

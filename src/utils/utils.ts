@@ -18,6 +18,7 @@ export const getTitleFromPath = (path: string) => {
     '/profile': 'ME',
     '/register': '회원가입',
     '/add': '맛집 등록',
+    '/places/:id': '맛집 상세',
   };
 
   //  '/transactions/[...slug]': '지출 내역 수정', 이 적용이 되지 않기에 아래처럼 함
@@ -224,40 +225,40 @@ export function formatCurrency(amount: number, showSymbol = true): string {
 
 
 
-declare global {
-  interface Window {
-    kakao: any;
-  }
-}
+// declare global {
+//   interface Window {
+//     kakao: any;
+//   }
+// }
 
-// ✅ 카카오 맵 로드
-export const loadKakaoMap = (onLoad: () => void) => {
-  if (typeof window === "undefined") return; // Next.js서버에서 실행되면 종료
+// // ✅ 카카오 맵 로드
+// export const loadKakaoMap = (onLoad: () => void) => {
+//   if (typeof window === "undefined") return; // Next.js서버에서 실행되면 종료
 
-  // <script id="kakao-map-script" src="..."></script> 가 존재하는경우
-  if (document.getElementById("kakao-map-script")) { // 있다면 성립
-    // 3. 이미 kakao 스크립트가 로드되었는지 확인
-    if (window.kakao?.maps?.load) {// 되어있다면 성립
-      // 스크립트 주소뒤에 옵션으로 autoload=false 했다면 자동으로 지도가 로드되지 않기떄문에 트리거 액션을 취해야되는데 그게 바로 아래 코드
-      window.kakao.maps.load(onLoad); // 지도 로드 되고 나서 콜으로 onLoad 실행
-    }
-    return;
-  }
-  // <script id="kakao-map-script" src="..."></script> 가 없는경우 아래 코드들 실행
+//   // <script id="kakao-map-script" src="..."></script> 가 존재하는경우
+//   if (document.getElementById("kakao-map-script")) { // 있다면 성립
+//     // 3. 이미 kakao 스크립트가 로드되었는지 확인
+//     if (window.kakao?.maps?.load) {// 되어있다면 성립
+//       // 스크립트 주소뒤에 옵션으로 autoload=false 했다면 자동으로 지도가 로드되지 않기떄문에 트리거 액션을 취해야되는데 그게 바로 아래 코드
+//       window.kakao.maps.load(onLoad); // 지도 로드 되고 나서 콜으로 onLoad 실행
+//     }
+//     return;
+//   }
+//   // <script id="kakao-map-script" src="..."></script> 가 없는경우 아래 코드들 실행
 
-  // 스크립트 요소 생성 (<script id="kakao-map-script" src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=...&autoload=false"></script>)
-  const script = document.createElement("script");
-  script.id = "kakao-map-script";
-  script.src = `//dapi.kakao.com/v2/maps/sdk.js?appkey=${process.env.NEXT_PUBLIC_KAKAO_MAP_API_KEY}&autoload=false`;
-  script.async = true;
-  // 스크립트 요소 생성
+//   // 스크립트 요소 생성 (<script id="kakao-map-script" src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=...&autoload=false"></script>)
+//   const script = document.createElement("script");
+//   script.id = "kakao-map-script";
+//   script.src = `//dapi.kakao.com/v2/maps/sdk.js?appkey=${process.env.NEXT_PUBLIC_KAKAO_MAP_API_KEY}&autoload=false`;
+//   script.async = true;
+//   // 스크립트 요소 생성
 
-  // 위의 스크립트 로드 후 콜백 실행
-  script.onload = () => {
-    // 스크립트 주소뒤에 옵션으로 autoload=false 했다면 자동으로 지도가 로드되지 않기떄문에 트리거 액션을 취해야되는데 그게 바로 아래 코드
-    window.kakao.maps.load(onLoad); // 지도 로드 되고 나서 콜으로 onLoad 실행
-  };
+//   // 위의 스크립트 로드 후 콜백 실행
+//   script.onload = () => {
+//     // 스크립트 주소뒤에 옵션으로 autoload=false 했다면 자동으로 지도가 로드되지 않기떄문에 트리거 액션을 취해야되는데 그게 바로 아래 코드
+//     window.kakao.maps.load(onLoad); // 지도 로드 되고 나서 콜으로 onLoad 실행
+//   };
 
-  // <head>에 삽입
-  document.head.appendChild(script);
-};
+//   // <head>에 삽입
+//   document.head.appendChild(script);
+// };

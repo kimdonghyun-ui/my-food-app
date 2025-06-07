@@ -77,7 +77,7 @@ export interface PlacePostPayload {
           try {
             const res = await fetchApi<{ data: Place[]; meta: { pagination: { total: number } } }>(query);
             set({ places: res.data, placesTotal: res.meta.pagination.total });
-          } catch (error) {
+          } catch {
             set({ error: '맛집 목록 불러오기 실패' });
             toast.error('맛집 목록 불러오기 실패!');
           } finally {
@@ -104,7 +104,7 @@ export interface PlacePostPayload {
               ),
             }));
 
-          } catch (err) {
+          } catch {
             toast.error("맛집 수정에 실패했어요.");
             set({ error: "맛집 수정에 실패했어요." });
           } finally {
@@ -127,7 +127,7 @@ export interface PlacePostPayload {
           set((state) => ({
             places: state.places.filter((place) => place.id !== id),
           }));
-        } catch (err) {
+        } catch {
           toast.error("맛집 삭제에 실패했어요.");
           set({ error: "맛집 삭제에 실패했어요." });
         } finally {
@@ -146,7 +146,7 @@ export interface PlacePostPayload {
           try {
             const res = await fetchApi<{ data: Place }>(`/places/${id}`);
             set({ place: res.data });
-          } catch (error) {
+          } catch {
             set({ error: '맛집 상세 불러오기 실패' });
             toast.error('맛집 상세 불러오기 실패!');
           } finally {

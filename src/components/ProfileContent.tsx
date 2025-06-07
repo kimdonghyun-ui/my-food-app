@@ -19,9 +19,9 @@ export default function ProfileContent() {
     profileImage: user?.profileImage || ''
   });
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  // const [error, setError] = useState<string | null>(null);
 
-  console.log('error', error)
+  // console.log('error', error)
 
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files.length > 0) {
@@ -36,14 +36,15 @@ export default function ProfileContent() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError(null);
+    // setError(null);
     setIsLoading(true);
 
     try {
       setIsEditing(false);
       await handleProfileUpdate(editedUser);
     } catch (err) {
-      setError(err instanceof Error ? err.message : '프로필 수정에 실패했습니다.');
+      console.log('err', err)
+      // setError(err instanceof Error ? err.message : '프로필 수정에 실패했습니다.');
     } finally {
       setIsLoading(false);
     }
@@ -58,7 +59,7 @@ export default function ProfileContent() {
       profileImage: user?.profileImage || ''
     });
 
-    if ((editedUser.email === 'hello@naver.com') && isEditing) {
+    if ((user?.email === 'hello@naver.com') && isEditing) {
       toast.success('hello@naver.com 계정은 테스트 계정이라 이메일 및 비밀번호 변경이 불가능합니다.');
     }
 

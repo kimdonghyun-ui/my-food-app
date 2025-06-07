@@ -56,7 +56,7 @@ export const useReviewStore = create<ReviewState>()(
             method: 'GET',
           });
           set({ reviews: res.data, reviewsTotal: res.meta.pagination.total });
-        } catch (err) {
+        } catch {
           toast.error("리뷰를 불러오는 데 실패했어요.");
           set({ error: "리뷰 로드 실패" });
         } finally {
@@ -85,7 +85,7 @@ export const useReviewStore = create<ReviewState>()(
               reviews: [res.data, ...state.reviews.slice(0, pageSize - 1)],
             }));
           }
-        } catch (err) {
+        } catch {
           toast.error("리뷰작성 실패했어요.");
           set({ error: "리뷰작성 실패했어요." });
         } finally {
@@ -104,7 +104,7 @@ export const useReviewStore = create<ReviewState>()(
           set((state) => ({
             reviews: state.reviews.filter((review) => review.id !== id),
           }));
-        } catch (err) {
+        } catch {
           toast.error("리뷰 삭제에 실패했어요.");
           set({ error: "리뷰 삭제에 실패했어요." });
         } finally {
@@ -126,7 +126,7 @@ export const useReviewStore = create<ReviewState>()(
               review.id === id ? res.data : review
             ),
           }));
-        } catch (err) {
+        } catch {
           toast.error("리뷰 수정에 실패했어요.");
           set({ error: "리뷰 수정에 실패했어요." });
         } finally {
