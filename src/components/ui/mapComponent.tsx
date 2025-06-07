@@ -29,7 +29,9 @@ export default function MapComponent({
   const mapInstance = useRef<kakao.maps.Map | null>(null);
   const markersRef = useRef<{ marker: kakao.maps.Marker; overlay?: kakao.maps.CustomOverlay }[]>([]);
   const clickMarkerRef = useRef<kakao.maps.Marker | null>(null);
-  const clickListenerRef = useRef<kakao.maps.MapEventListener | null>(null);
+  // const clickListenerRef = useRef<kakao.maps.MapEventListener | null>(null);
+  const clickListenerRef = useRef<((mouseEvent: kakao.maps.event.MouseEvent) => void) | null>(null);
+
 
   const categoryRef = useRef(category);
   const keywordRef = useRef(keyword);
@@ -113,7 +115,10 @@ export default function MapComponent({
         const pos = new kakao.maps.LatLng(marker.lat, marker.lng);
 
         if (!clickMarkerRef.current) {
-          const m = new kakao.maps.Marker({ position: pos });
+          const m = new kakao.maps.Marker({ 
+            position: pos,
+            map: map
+          });
           m.setMap(map);
           clickMarkerRef.current = m;
         } else {
@@ -130,7 +135,10 @@ export default function MapComponent({
         const latlng = mouseEvent.latLng;
 
         if (!clickMarkerRef.current) {
-          const m = new kakao.maps.Marker({ position: latlng });
+          const m = new kakao.maps.Marker({ 
+            position: latlng,
+            map: map
+          });
           m.setMap(map);
           clickMarkerRef.current = m;
         } else {
@@ -150,7 +158,10 @@ export default function MapComponent({
       markersRef.current = [];
 
       const pos = new kakao.maps.LatLng(marker.lat, marker.lng);
-      const m = new kakao.maps.Marker({ position: pos });
+      const m = new kakao.maps.Marker({ 
+        position: pos,
+        map: map
+      });
       m.setMap(map);
       map.setCenter(pos);
       markersRef.current = [{ marker: m }];

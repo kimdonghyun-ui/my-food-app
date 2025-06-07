@@ -3,12 +3,29 @@ export {};
 declare global {
 
   namespace kakao.maps.event {
+    interface MouseEvent {
+      latLng: kakao.maps.LatLng;
+    }
+    
+    function addListener(
+      target: kakao.maps.Map | kakao.maps.Marker,
+      type: string,
+      listener: (event: kakao.maps.event.MouseEvent) => void
+    ): void;
+    
     function addListener(
       target: kakao.maps.Map | kakao.maps.Marker,
       type: string,
       listener: (...args: unknown[]) => void
     ): void;
+    
 
+    function removeListener(
+      target: kakao.maps.Map | kakao.maps.Marker,
+      type: string,
+      listener: (mouseEvent: kakao.maps.event.MouseEvent) => void
+    ): void;
+    
     function removeListener(
       target: kakao.maps.Map | kakao.maps.Marker,
       type: string,
@@ -49,6 +66,7 @@ declare global {
         map: Map;
       });
       setMap(map: Map | null): void;
+      setPosition(position: LatLng): void;
     }
 
     class InfoWindow {
