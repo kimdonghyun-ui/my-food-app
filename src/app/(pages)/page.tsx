@@ -145,7 +145,7 @@ useEffect(() => {
         {/* 맛집 추가 페이지로 이동 */}
         <Button
           onClick={() => router.push("/add")}
-          className="fixed bottom-6 right-6 rounded-full w-14 h-14 shadow-xl text-white bg-purple-600 dark:bg-purple-500 hover:bg-purple-700 dark:hover:bg-purple-400"
+          className="fixed bottom-[10px] right-[10px] rounded-full w-14 h-14 shadow-xl text-white bg-purple-600 dark:bg-purple-500 hover:bg-purple-700 dark:hover:bg-purple-400 z-[3]"
         >
           <PlusIcon className="w-6 h-6" />
         </Button>
