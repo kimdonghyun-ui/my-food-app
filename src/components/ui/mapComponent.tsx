@@ -27,7 +27,7 @@ export default function MapComponent({
   const { fetchPlaces, places } = usePlaceStore();
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstance = useRef<kakao.maps.Map | null>(null);
-  const markersRef = useRef<kakao.maps.Marker[]>([]);
+  const markersRef = useRef<{ marker: kakao.maps.Marker; overlay?: kakao.maps.CustomOverlay }[]>([]);
   const clickMarkerRef = useRef<kakao.maps.Marker | null>(null);
   const clickListenerRef = useRef<kakao.maps.MapEventListener | null>(null);
 
@@ -146,14 +146,14 @@ export default function MapComponent({
     }
 
     if (marker && !selectable) {
-      markersRef.current.forEach((m) => m.setMap(null));
+      markersRef.current.forEach(({ marker }) => marker.setMap(null));
       markersRef.current = [];
 
       const pos = new kakao.maps.LatLng(marker.lat, marker.lng);
       const m = new kakao.maps.Marker({ position: pos });
       m.setMap(map);
       map.setCenter(pos);
-      markersRef.current = [m];
+      markersRef.current = [{ marker: m }];
       return;
     }
 
@@ -173,30 +173,46 @@ export default function MapComponent({
   }, [mapLoaded, loadPlacesByBounds, marker, selectable, onSelectLocation]);
 
   useEffect(() => {
-    if (marker || !mapInstance.current) return;
+    if (!mapInstance.current || !window.kakao || selectable || marker) return;
+    const map = mapInstance.current;
+    const { kakao } = window;
 
-    markersRef.current.forEach((m) => m.setMap(null));
+    markersRef.current.forEach(({ marker }) => marker.setMap(null));
     markersRef.current = [];
 
-    if (places.length === 0) return;
+    places.forEach((place) => {
+      const { latitude, longitude, name, category } = place.attributes;
+      const position = new kakao.maps.LatLng(latitude, longitude);
+      const marker = new kakao.maps.Marker({ position, map });
 
-    const { kakao } = window;
-    const newMarkers = places.map((place) => {
-      const pos = new kakao.maps.LatLng(
-        place.attributes.latitude,
-        place.attributes.longitude
-      );
-      const m = new kakao.maps.Marker({ position: pos, map: mapInstance.current! });
+      const content = document.createElement("div");
+      content.innerHTML = `
+        <div class="custom-overlay-content inline-block bg-white rounded-md shadow-md px-[10px] py-[5px] text-[14px] whitespace-nowrap pointer-events-auto border border-gray-400 cursor-pointer">
+          <strong class="text-purple-600 text-[16px]">${name}</strong><br />
+          <span class="text-gray-500 text-[13px]">${category}</span>
+        </div>`;
 
-      if (onPlaceClick) {
-        kakao.maps.event.addListener(m, "click", () => onPlaceClick(place));
-      }
+      const overlay = new kakao.maps.CustomOverlay({
+        content,
+        position,
+        yAnchor: 1,
+        map: null,
+      });
 
-      return m;
+      const show = () => overlay.setMap(map);
+      const hide = () => setTimeout(() => overlay.setMap(null), 200);
+
+      kakao.maps.event.addListener(marker, "mouseover", show);
+      kakao.maps.event.addListener(marker, "mouseout", hide);
+      content.addEventListener("mouseenter", show);
+      content.addEventListener("mouseleave", hide);
+
+      const div = content.querySelector(".custom-overlay-content");
+      if (div && onPlaceClick) div.addEventListener("click", () => onPlaceClick(place));
+
+      markersRef.current.push({ marker, overlay });
     });
-
-    markersRef.current = newMarkers;
-  }, [places, onPlaceClick, marker]);
+  }, [places, onPlaceClick, marker, selectable]);
 
   useEffect(() => {
     if (!mapInstance.current || marker) return;
