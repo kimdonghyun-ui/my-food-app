@@ -1,5 +1,5 @@
 "use client";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Place, usePlaceStore } from "@/store/placeStore";
 
 interface MapComponentProps {
@@ -17,7 +17,7 @@ export default function MapComponent({
   keyword = "",
   height = "300px",
   category = "전체",
-  categorys = [],
+  categorys,
   onPlaceClick,
   selectable = false,
   onSelectLocation,
@@ -29,9 +29,10 @@ export default function MapComponent({
   const mapInstance = useRef<kakao.maps.Map | null>(null);
   const markersRef = useRef<{ marker: kakao.maps.Marker; overlay?: kakao.maps.CustomOverlay }[]>([]);
   const clickMarkerRef = useRef<kakao.maps.Marker | null>(null);
-  // const clickListenerRef = useRef<kakao.maps.MapEventListener | null>(null);
   const clickListenerRef = useRef<((mouseEvent: kakao.maps.event.MouseEvent) => void) | null>(null);
 
+  // ✅ categorys가 undefined이면 []로 대체
+  const stableCategorys = useMemo(() => Array.isArray(categorys) ? categorys : [], [categorys]);
 
   const categoryRef = useRef(category);
   const keywordRef = useRef(keyword);
@@ -76,9 +77,9 @@ export default function MapComponent({
       const ne = bounds.getNorthEast();
 
       const getCategoryFilterParams = (category: string): string => {
-        if (!categorys.length || category === "전체") return "";
+        if (!Array.isArray(stableCategorys) || !stableCategorys.length || category === "전체") return "";
         if (category === "기타") {
-          return categorys
+          return stableCategorys
             .map((cat, i) => `&filters[category][$notIn][${i}]=${cat}`)
             .join("");
         }
@@ -93,8 +94,14 @@ export default function MapComponent({
 
       await fetchPlaces(query);
     },
-    [categorys, fetchPlaces]
+    [stableCategorys, fetchPlaces]
   );
+
+  useEffect(() => {
+    if (!mapInstance.current || marker || selectable) return;
+    const bounds = mapInstance.current.getBounds();
+    loadPlacesByBounds(bounds);
+  }, [category, keyword, marker, selectable, loadPlacesByBounds]);
 
   useEffect(() => {
     if (!mapLoaded || !window.kakao || !mapRef.current) return;
@@ -115,10 +122,7 @@ export default function MapComponent({
         const pos = new kakao.maps.LatLng(marker.lat, marker.lng);
 
         if (!clickMarkerRef.current) {
-          const m = new kakao.maps.Marker({ 
-            position: pos,
-            map: map
-          });
+          const m = new kakao.maps.Marker({ position: pos, map });
           m.setMap(map);
           clickMarkerRef.current = m;
         } else {
@@ -135,10 +139,7 @@ export default function MapComponent({
         const latlng = mouseEvent.latLng;
 
         if (!clickMarkerRef.current) {
-          const m = new kakao.maps.Marker({ 
-            position: latlng,
-            map: map
-          });
+          const m = new kakao.maps.Marker({ position: latlng, map });
           m.setMap(map);
           clickMarkerRef.current = m;
         } else {
@@ -158,10 +159,7 @@ export default function MapComponent({
       markersRef.current = [];
 
       const pos = new kakao.maps.LatLng(marker.lat, marker.lng);
-      const m = new kakao.maps.Marker({ 
-        position: pos,
-        map: map
-      });
+      const m = new kakao.maps.Marker({ position: pos, map });
       m.setMap(map);
       map.setCenter(pos);
       markersRef.current = [{ marker: m }];
@@ -224,12 +222,6 @@ export default function MapComponent({
       markersRef.current.push({ marker, overlay });
     });
   }, [places, onPlaceClick, marker, selectable]);
-
-  useEffect(() => {
-    if (!mapInstance.current || marker) return;
-    const bounds = mapInstance.current.getBounds();
-    loadPlacesByBounds(bounds);
-  }, [category, keyword]);
 
   return <div ref={mapRef} style={{ width: "100%", height }} />;
 }
