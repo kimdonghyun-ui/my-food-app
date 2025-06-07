@@ -79,6 +79,55 @@ export default function MyPlaces({ title }: Props) {
   return (
     <section className="bg-white dark:bg-gray-800 rounded-xl shadow p-4 space-y-4 relative">
       <LoadingOverlay show={isLoading} />
+
+      {/* 수정 모달 */}
+      <Modal isOpen={editModalOpen} onClose={() => setEditModalOpen(false)}>
+        <h2 className="text-lg font-bold mb-4">맛집 수정</h2>
+        <div className="space-y-4">
+          <Input
+            value={editedName}
+            onChange={(e) => setEditedName(e.target.value)}
+            placeholder="맛집 이름"
+          />
+          <Input
+            value={editedCategory}
+            onChange={(e) => setEditedCategory(e.target.value)}
+            placeholder="카테고리"
+          />
+          <Textarea
+            value={editedDesc}
+            onChange={(e) => setEditedDesc(e.target.value)}
+            placeholder="설명"
+          />
+
+          {/* 지도 모달 */}
+          {/* 등록용 */}
+          <MapComponent
+        //   keyword={keyword} // 검색 키워드
+          height="200px" // 놓이 
+        //   category={category} // 카테고리
+        //   categorys={categoryOptions}
+        //   onPlaceClick={(place: Place) => {
+        //     console.log('마커 클릭했음', place)
+        //     router.push(`/places/${place.id}`);
+        //   }}
+          marker={{lat: selectedLocation.lat, lng: selectedLocation.lng}}
+          selectable={true}
+          onSelectLocation={(lat, lng) => {
+            setSelectedLocation({ lat, lng });
+            console.log('선택된 위치:', lat, lng);
+          }}
+        />
+
+        </div>
+        <div className="mt-6 flex justify-end gap-2">
+          <Button onClick={handleUpdate}>저장</Button>
+          <Button variant="outline" onClick={() => setEditModalOpen(false)}>
+            취소
+          </Button>
+        </div>
+      </Modal>
+
       <h2 className="font-semibold text-base">{title}</h2>
 
       {places.length > 0 ? (
@@ -120,54 +169,6 @@ export default function MyPlaces({ title }: Props) {
         onChange={(newPage) => setPage(newPage)}
       />
 
-     
-      {/* 수정 모달 */}
-      <Modal isOpen={editModalOpen} onClose={() => setEditModalOpen(false)}>
-        <h2 className="text-lg font-bold mb-4">맛집 수정</h2>
-        <div className="space-y-4">
-          <Input
-            value={editedName}
-            onChange={(e) => setEditedName(e.target.value)}
-            placeholder="맛집 이름"
-          />
-          <Input
-            value={editedCategory}
-            onChange={(e) => setEditedCategory(e.target.value)}
-            placeholder="카테고리"
-          />
-          <Textarea
-            value={editedDesc}
-            onChange={(e) => setEditedDesc(e.target.value)}
-            placeholder="설명"
-          />
-
-          {/* 지도 모달 */}
-          {/* 등록용 */}
-          <MapComponent
-        //   keyword={keyword} // 검색 키워드
-          height="400px" // 놓이 
-        //   category={category} // 카테고리
-        //   categorys={categoryOptions}
-        //   onPlaceClick={(place: Place) => {
-        //     console.log('마커 클릭했음', place)
-        //     router.push(`/places/${place.id}`);
-        //   }}
-          marker={{lat: selectedLocation.lat, lng: selectedLocation.lng}}
-          selectable={true}
-          onSelectLocation={(lat, lng) => {
-            setSelectedLocation({ lat, lng });
-            console.log('선택된 위치:', lat, lng);
-          }}
-        />
-
-        </div>
-        <div className="mt-6 flex justify-end gap-2">
-          <Button onClick={handleUpdate}>저장</Button>
-          <Button variant="outline" onClick={() => setEditModalOpen(false)}>
-            취소
-          </Button>
-        </div>
-      </Modal>
     </section>
   );
 }

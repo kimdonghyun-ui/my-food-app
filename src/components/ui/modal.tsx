@@ -13,8 +13,8 @@ export default function Modal({ isOpen, onClose, children }: ModalProps) {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 w-[90%] max-w-md relative">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 overflow-y-auto my-0">
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 w-[90%] max-w-md relative my-8 max-h-screen overflow-y-auto">
         {/* 닫기 버튼 */}
         <button
           onClick={onClose}
