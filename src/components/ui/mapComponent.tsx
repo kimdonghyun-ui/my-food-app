@@ -1,6 +1,7 @@
 "use client";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Place, usePlaceStore } from "@/store/placeStore";
+import LoadingOverlay from "@/components/LoadingOverlay";
 
 interface MapComponentProps {
   keyword?: string;
@@ -24,7 +25,7 @@ export default function MapComponent({
   marker,
 }: MapComponentProps) {
   const [mapLoaded, setMapLoaded] = useState(false);
-  const { fetchPlaces, places } = usePlaceStore();
+  const { fetchPlaces, places, isLoading } = usePlaceStore();
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstance = useRef<kakao.maps.Map | null>(null);
   const markersRef = useRef<{ marker: kakao.maps.Marker; overlay?: kakao.maps.CustomOverlay }[]>([]);
@@ -228,5 +229,11 @@ export default function MapComponent({
     });
   }, [places, onPlaceClick, marker, selectable]);
 
-  return <div ref={mapRef} style={{ width: "100%", height }} />;
+  return (
+    <div className="relative" style={{ width: "100%", height }}>
+      <LoadingOverlay show={isLoading} />
+      <div ref={mapRef} style={{ width: "100%", height }} />
+    </div>
+    
+  );
 }

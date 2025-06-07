@@ -6,6 +6,7 @@ import { useReviewStore } from "@/store/reviewStore";
 import { Input } from "./input";
 
 import Pagination from "@/components/ui/pagination";
+import LoadingOverlay from "@/components/LoadingOverlay";
 
 interface Review {
   id: number;
@@ -50,7 +51,7 @@ export default function Review({ placeId, title }: Props) {
 
 
   const { user } = useAuthStore();
-  const { fetchReviews, reviewsTotal , reviews, createReviews, deleteReview, updateReview } = useReviewStore();
+  const { fetchReviews, reviewsTotal , reviews, createReviews, deleteReview, updateReview, isLoading } = useReviewStore();
 
   const PAGE_SIZE = 2; // 페이지네이션 한페이지 몇개 보여줄지
   const reviewsPages = Math.ceil(reviewsTotal / PAGE_SIZE);
@@ -86,9 +87,11 @@ export default function Review({ placeId, title }: Props) {
 
 
   return (
-    <div className="space-y-6 mt-8 bg-white dark:bg-gray-900 p-4 rounded-lg shadow-md">
-      <h2 className="text-xl font-bold text-purple-700 dark:text-purple-300">{title}</h2>
+    <div className="space-y-6 mt-8 bg-white dark:bg-gray-900 p-4 rounded-lg shadow-md relative">
 
+      <LoadingOverlay show={isLoading} />
+
+      <h2 className="text-xl font-bold text-purple-700 dark:text-purple-300">{title}</h2>
 
       {/* 등록 하는 부분(상세페이지에서만 노출) */}
       {
