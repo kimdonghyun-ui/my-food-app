@@ -31,7 +31,6 @@ export default function MapComponent({
   const clickMarkerRef = useRef<kakao.maps.Marker | null>(null);
   const clickListenerRef = useRef<((mouseEvent: kakao.maps.event.MouseEvent) => void) | null>(null);
 
-  // ✅ categorys가 undefined이면 []로 대체
   const stableCategorys = useMemo(() => Array.isArray(categorys) ? categorys : [], [categorys]);
 
   const categoryRef = useRef(category);
@@ -213,8 +212,14 @@ export default function MapComponent({
 
       kakao.maps.event.addListener(marker, "mouseover", show);
       kakao.maps.event.addListener(marker, "mouseout", hide);
+      kakao.maps.event.addListener(marker, "click", () => {
+        overlay.setMap(map);
+        setTimeout(() => overlay.setMap(null), 2000);
+      });
+
       content.addEventListener("mouseenter", show);
       content.addEventListener("mouseleave", hide);
+      content.addEventListener("touchstart", show);
 
       const div = content.querySelector(".custom-overlay-content");
       if (div && onPlaceClick) div.addEventListener("click", () => onPlaceClick(place));
