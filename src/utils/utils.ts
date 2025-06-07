@@ -26,6 +26,10 @@ export const getTitleFromPath = (path: string) => {
     return '지출수정';
   }
 
+  if (/^\/places\/[^/]+$/.test(path)) {
+    return '맛집 상세';
+  }
+
   return map[path] || '페이지';
 };
 
