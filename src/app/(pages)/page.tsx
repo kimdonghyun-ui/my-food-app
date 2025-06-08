@@ -67,8 +67,8 @@ useEffect(() => {
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50 dark:from-gray-950 dark:to-gray-800 transition-colors duration-300">
-      <section className="flex flex-col gap-4 px-4 pt-6 pb-32 max-w-md mx-auto">
-        <h1 className="text-2xl font-bold text-center text-purple-800 dark:text-purple-300">
+      <section className="flex flex-col h-[calc(100vh-64px)] px-4 pt-6 pb-4 max-w-md mx-auto">
+        <h1 className="text-2xl font-bold text-center text-purple-800 dark:text-purple-300 mb-3">
           주변 맛집 찾기 ({category})
         </h1>
 
@@ -111,7 +111,7 @@ useEffect(() => {
         </div>
 
         {/* 카테고리 버튼 영역 */}
-        <div className="overflow-auto whitespace-nowrap space-x-2 scrollbar-hide">
+        <div className="overflow-auto whitespace-nowrap space-x-2 scrollbar-hide my-3">
           {["전체", "한식", "중식", "일식", "디저트", "카페", "기타"].map((cat: string) => (
             <Button
               key={cat}
@@ -128,27 +128,31 @@ useEffect(() => {
 
         {/* 지도 영역 */}
         {/* 메인용 */}
-        <MapComponent
-          keyword={keyword} // 검색 키워드
-          height="400px" // 놓이 
-          category={category} // 카테고리
-          categorys={categoryOptions}
-          onPlaceClick={(place: Place) => {
-            console.log('마커 클릭했음', place)
-            router.push(`/places/${place.id}`);
-          }}
-        //   marker={{ lat: 37.5665, lng: 126.978 }}
-          selectable={false}
-        />
+        <div className="flex-1 overflow-hidden">
+          <MapComponent
+            keyword={keyword} // 검색 키워드
+            height="100%" // 놓이 
+            category={category} // 카테고리
+            categorys={categoryOptions}
+            onPlaceClick={(place: Place) => {
+              console.log('마커 클릭했음', place)
+              router.push(`/places/${place.id}`);
+            }}
+          //   marker={{ lat: 37.5665, lng: 126.978 }}
+            selectable={false}
+          />
+        </div>
         {/* 지도 영역 */}
 
         {/* 맛집 추가 페이지로 이동 */}
-        <Button
-          onClick={() => router.push("/add")}
-          className="fixed bottom-[10px] right-[10px] rounded-full w-14 h-14 shadow-xl text-white bg-purple-600 dark:bg-purple-500 hover:bg-purple-700 dark:hover:bg-purple-400 z-[30]"
-        >
-          <PlusIcon className="w-6 h-6" />
-        </Button>
+        <div className="">
+          <Button
+            onClick={() => router.push("/add")}
+            className="mt-4 w-full h-12 bg-purple-600 dark:bg-purple-500 text-white hover:bg-purple-700 dark:hover:bg-purple-400"
+          >
+            맛집 등록하기
+          </Button>
+        </div>
         {/* 맛집 추가 버튼 */}
 
 

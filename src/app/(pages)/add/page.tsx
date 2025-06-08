@@ -50,7 +50,7 @@ export default function AddPlacePage() {
         {/* 등록용 */}
         <MapComponent
         //   keyword={keyword} // 검색 키워드
-          height="400px" // 놓이 
+          height="300px" // 놓이 
         //   category={category} // 카테고리
         //   categorys={categoryOptions}
         //   onPlaceClick={(place: Place) => {

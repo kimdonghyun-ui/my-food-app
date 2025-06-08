@@ -35,5 +35,26 @@ export default function ClientHandler() {
   }, [linkName, router]);
   // ### linkName ###
 
+  // ### 터치 이벤트 방지 ###
+  useEffect(() => {
+    let lastTouchEnd = 0;
+
+    const handleTouchEnd = (event: TouchEvent) => {
+      const now = new Date().getTime();
+      if (now - lastTouchEnd <= 300) {
+        event.preventDefault();
+      }
+      lastTouchEnd = now;
+    };
+
+    document.addEventListener('touchend', handleTouchEnd, false);
+    return () => {
+      document.removeEventListener('touchend', handleTouchEnd);
+    };
+  }, []);
+  
+
+
+
   return null;
 }
