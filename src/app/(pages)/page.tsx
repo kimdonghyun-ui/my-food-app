@@ -6,17 +6,19 @@ import { Button } from "@/components/ui/button";
 import { LocateFixed, Search } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Place } from "@/store/placeStore";
-import { toast } from "react-hot-toast";
-import MapComponent from "@/components/ui/mapComponent";
+// import { toast } from "react-hot-toast";
+import MapComponent, { MapComponentRef } from "@/components/ui/mapComponent";
 
 
 export default function HomePage() {
+  const mapRef = useRef<MapComponentRef>(null);
+
   const router = useRouter();
 
   const [category, setCategory] = useState<string>("전체");
   const [keyword, setKeyword] = useState<string>("");
   const [inputValue, setInputValue] = useState("");
-  const mapInstance = useRef<kakao.maps.Map | null>(null);
+  // const mapInstance = useRef<kakao.maps.Map | null>(null);
 
   const handleCategoryClick = (cat: string) => {
     setCategory(cat);
@@ -32,34 +34,34 @@ export default function HomePage() {
     []
   );
 
-  const handleGoToCurrentLocation = () => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const { latitude, longitude } = position.coords;
-          mapInstance.current?.setCenter(new kakao.maps.LatLng(latitude, longitude));
-        },
-        (error) => {
-          switch (error.code) {
-            case error.PERMISSION_DENIED:
-              toast.error("위치 권한을 허용해야 현재 위치로 이동할 수 있어요.");
-              break;
-            case error.POSITION_UNAVAILABLE:
-              toast.error("위치 정보를 사용할 수 없어요.");
-              break;
-            case error.TIMEOUT:
-              toast.error("위치 정보를 가져오는 데 시간이 너무 오래 걸려요.");
-              break;
-            default:
-              toast.error("현재 위치를 가져올 수 없어요.");
-              break;
-          }
-        }
-      );
-    } else {
-      toast.error("브라우저가 위치 정보를 지원하지 않아요.");
-    }
-  };
+  // const handleGoToCurrentLocation = () => {
+  //   if (navigator.geolocation) {
+  //     navigator.geolocation.getCurrentPosition(
+  //       (position) => {
+  //         const { latitude, longitude } = position.coords;
+  //         mapInstance.current?.setCenter(new kakao.maps.LatLng(latitude, longitude));
+  //       },
+  //       (error) => {
+  //         switch (error.code) {
+  //           case error.PERMISSION_DENIED:
+  //             toast.error("위치 권한을 허용해야 현재 위치로 이동할 수 있어요.");
+  //             break;
+  //           case error.POSITION_UNAVAILABLE:
+  //             toast.error("위치 정보를 사용할 수 없어요.");
+  //             break;
+  //           case error.TIMEOUT:
+  //             toast.error("위치 정보를 가져오는 데 시간이 너무 오래 걸려요.");
+  //             break;
+  //           default:
+  //             toast.error("현재 위치를 가져올 수 없어요.");
+  //             break;
+  //         }
+  //       }
+  //     );
+  //   } else {
+  //     toast.error("브라우저가 위치 정보를 지원하지 않아요.");
+  //   }
+  // };
   
 useEffect(() => {
   console.log('categorycategorycategorycategory',category)
@@ -104,7 +106,7 @@ useEffect(() => {
             variant="outline"
             size="icon"
             className="bg-white dark:bg-gray-800"
-            onClick={handleGoToCurrentLocation}
+            onClick={() => mapRef.current?.goToCurrentLocation()}
           >
             <LocateFixed className="w-5 h-5 text-purple-600 dark:text-purple-300" />
           </Button>
@@ -140,6 +142,7 @@ useEffect(() => {
             }}
           //   marker={{ lat: 37.5665, lng: 126.978 }}
             selectable={false}
+            ref={mapRef}
           />
         </div>
         {/* 지도 영역 */}
