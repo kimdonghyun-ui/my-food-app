@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { LocateFixed, PlusIcon, Search } from "lucide-react";
+import { LocateFixed, Search } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Place } from "@/store/placeStore";
 import { toast } from "react-hot-toast";
