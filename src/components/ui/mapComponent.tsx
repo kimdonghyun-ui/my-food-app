@@ -295,6 +295,8 @@ const MapComponent = forwardRef<MapComponentRef, MapComponentProps>(({
   const categoryRef = useRef(category);
   const keywordRef = useRef(keyword);
 
+  const isFirstRenderRef = useRef(true);
+
   useEffect(() => {
     categoryRef.current = category;
   }, [category]);
@@ -388,8 +390,11 @@ const MapComponent = forwardRef<MapComponentRef, MapComponentProps>(({
           clickMarkerRef.current.setPosition(pos);
         }
 
-        // ✅ 지도 중심을 마커 위치로 이동
-        map.setCenter(pos);
+        // ✅ 처음 렌더일 때만 지도 중심 이동
+        if (isFirstRenderRef.current) {
+          map.setCenter(pos);
+          isFirstRenderRef.current = false;
+        }
 
       }
 
