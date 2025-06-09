@@ -6,7 +6,7 @@ import DarkModeToggle from '../DarkModeToggle';
 import { usePathname } from 'next/navigation';
 import { getTitleFromPath } from '@/utils/utils';
 
-import { LogOut, User, LayoutDashboard, Home } from 'lucide-react';
+import { LogOut, User, Home } from 'lucide-react';
 import { IconBtn } from '../ui/IconBtn';
 
 
