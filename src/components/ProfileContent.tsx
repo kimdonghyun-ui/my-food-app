@@ -7,6 +7,8 @@ import ProfileImage from "@/components/ProfileImage";
 import Review from "@/components/ui/review";
 import MyPlaces from "@/components/ui/myPlaces.tsx";
 import { toast } from 'react-hot-toast';
+import { useReviewStore } from '@/store/reviewStore';
+import { usePlaceStore } from '@/store/placeStore';
 
 
 export default function ProfileContent() {
@@ -65,7 +67,10 @@ export default function ProfileContent() {
 
   }, [isEditing, user]);
 
-
+  useEffect(() => {
+    usePlaceStore.getState().reset();
+    useReviewStore.getState().reset();
+  }, [])
 
   return (
     <div className="w-full min-h-screen bg-gradient-to-br from-purple-50 to-pink-50 dark:from-gray-900 dark:to-gray-800">

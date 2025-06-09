@@ -73,7 +73,7 @@ export interface PlacePostPayload {
   
         // 맛집 목록 불러오기
         fetchPlaces: async (query = '/places') => {
-          set({ isLoading: true, error: null, places: [], placesTotal: 0 });
+          set({ isLoading: true, error: null });
           try {
             const res = await fetchApi<{ data: Place[]; meta: { pagination: { total: number } } }>(query);
             set({ places: res.data, placesTotal: res.meta.pagination.total });
