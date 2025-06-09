@@ -387,6 +387,10 @@ const MapComponent = forwardRef<MapComponentRef, MapComponentProps>(({
           clickMarkerRef.current.setMap(map);
           clickMarkerRef.current.setPosition(pos);
         }
+
+        // ✅ 지도 중심을 마커 위치로 이동
+        map.setCenter(pos);
+
       }
 
       if (clickListenerRef.current) {
