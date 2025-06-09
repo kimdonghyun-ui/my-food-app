@@ -186,7 +186,7 @@ export default function Review({ placeId, title }: Props) {
                         {
                           placeId
                           ? review.attributes.users_permissions_user.data.attributes.username
-                          : review.attributes.place.data.attributes.name
+                          : review.attributes.place?.data?.attributes?.name
                         }
                       </span>
                       <span className="ml-2 text-yellow-400">
