@@ -61,7 +61,7 @@ export default function AddPlacePage() {
           selectable={true}
           onSelectLocation={(lat, lng) => {
             setSelectedLocation({ lat, lng });
-            console.log('선택된 위치:', lat, lng);
+            // console.log('선택된 위치:', lat, lng);
           }}
         />
 

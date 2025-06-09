@@ -64,7 +64,7 @@ export default function HomePage() {
   // };
   
 useEffect(() => {
-  console.log('categorycategorycategorycategory',category)
+  // console.log('categorycategorycategorycategory',category)
 }, [category]);
 
   return (
@@ -137,7 +137,7 @@ useEffect(() => {
             category={category} // 카테고리
             categorys={categoryOptions}
             onPlaceClick={(place: Place) => {
-              console.log('마커 클릭했음', place)
+              // console.log('마커 클릭했음', place)
               router.push(`/places/${place.id}`);
             }}
           //   marker={{ lat: 37.5665, lng: 126.978 }}
@@ -151,13 +151,12 @@ useEffect(() => {
         <div className="">
           <Button
             onClick={() => router.push("/add")}
-            className="mt-4 w-full h-12 bg-purple-600 dark:bg-purple-500 text-white hover:bg-purple-700 dark:hover:bg-purple-400"
+            className="mt-4 w-full h-12 rounded-xl text-base bg-gradient-to-r from-purple-500 to-pink-400 hover:opacity-90 text-white shadow-md"
           >
-            맛집 등록하기
+            + 맛집 등록하기
           </Button>
         </div>
         {/* 맛집 추가 버튼 */}
-
 
       </section>
     </main>

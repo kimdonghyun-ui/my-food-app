@@ -6,7 +6,7 @@ import DarkModeToggle from '../DarkModeToggle';
 import { usePathname } from 'next/navigation';
 import { getTitleFromPath } from '@/utils/utils';
 
-import { LogOut, User, LayoutDashboard } from 'lucide-react';
+import { LogOut, User, LayoutDashboard, Home } from 'lucide-react';
 import { IconBtn } from '../ui/IconBtn';
 
 
@@ -58,7 +58,7 @@ export default function Header({ showBackButton = false }: HeaderProps) {
           <DarkModeToggle />
           {accessToken && (
             <>
-              <IconBtn onClick={() => router.push('/')} icon={<LayoutDashboard />} title="홈" />
+              <IconBtn onClick={() => router.push('/')} icon={<Home />} title="홈" />
               <IconBtn onClick={() => router.push('/profile')} icon={<User />} title="프로필" />
               <IconBtn onClick={handleLogout} icon={<LogOut />} title="로그아웃" />
             </>
