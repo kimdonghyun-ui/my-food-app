@@ -2,14 +2,15 @@
 
 import { useState, useEffect } from 'react';
 import { useAuthStore } from '@/store/authStore';
-import { handleFileUpload } from "@/utils/fileUpload";
-import ProfileImage from "@/components/ProfileImage";
+// import { handleFileUpload } from "@/utils/fileUpload";
+// import ProfileImage from "@/components/ProfileImage";
 import Review from "@/components/ui/review";
 import MyPlaces from "@/components/ui/myPlaces.tsx";
 import { toast } from 'react-hot-toast';
 import { useReviewStore } from '@/store/reviewStore';
 import { usePlaceStore } from '@/store/placeStore';
-
+import Image from "next/image";
+import { uploadImage } from '@/utils/uploadImage';
 
 export default function ProfileContent() {
   const { user, handleProfileUpdate } = useAuthStore();
@@ -28,8 +29,10 @@ export default function ProfileContent() {
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files.length > 0) {
       try {
-        const svgString: string = await handleFileUpload(event);
-        setEditedUser(prev => ({ ...prev, profileImage: svgString }));
+        //const svgString: string = await handleFileUpload(event);
+        const imageUrl = await uploadImage(event.target.files[0]);
+
+        setEditedUser(prev => ({ ...prev, profileImage: imageUrl }));
       } catch (error) {
         console.error("파일 변환 중 오류 발생:", error);
       }
@@ -80,7 +83,8 @@ export default function ProfileContent() {
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow p-4 flex items-center gap-4">
           <div className="w-14 h-14 rounded-full overflow-hidden bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
             {editedUser.profileImage ? (
-              <ProfileImage svgString={editedUser.profileImage} alt={editedUser.username} width={56} height={56} />
+              // <ProfileImage svgString={editedUser.profileImage} alt={editedUser.username} width={56} height={56} />
+              <Image src={editedUser.profileImage} alt={editedUser.username} width={56} height={56} className="w-[56px] h-[56px] object-cover rounded-full" />
             ) : (
               <span className="text-2xl">👤</span>
             )}
